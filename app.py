@@ -42,7 +42,6 @@ def load_rules_list():
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
-# ✅ 다의어 로더 추가 (여기에요!)
 @st.cache_data
 def load_poly_df():
     """data/polysemy.csv (표제어,의미번호,뜻,예문)"""
@@ -171,11 +170,9 @@ def answer_rule(q: str) -> str:
         lines.append(f"예시: {ex}")
     return "\n".join(lines)
 
-# ✅ 다의어 답변 함수 추가
 def answer_poly(q: str) -> str:
     if POLY.empty:
         return "다의어 데이터(polysemy.csv)가 아직 없습니다."
-    # 질문 속 단어를 추정: CSV의 표제어 중 포함되는 것 고르기
     cands = [w for w in POLY["표제어"].unique() if isinstance(w, str) and w in q]
     if not cands:
         return "어떤 단어의 여러 뜻을 묻는지 알려 주세요. (예: '들다 다의어 알려줘')"
@@ -187,37 +184,137 @@ def answer_poly(q: str) -> str:
         lines.append(f" {num}. {r['뜻']}  (예: {r['예문']})")
     return "\n".join(lines)
 
+
 # ─────────────────────────────────────────────────────────────
-# 질의 UI
+# 탭 UI: 질문하기 | 퀴즈
 # ─────────────────────────────────────────────────────────────
-st.subheader("💬 질문하기")
-user_q = st.text_input("🙌질문 예시: 교각살우의 뜻이 궁금해요, 늑막염의 표준 발음을 알려주세요, 자료에서 ~는 어디에 나오나요?")
+tab_ask, tab_quiz = st.tabs(["🧐 질문하기", "🤗 퀴즈 풀기"])
 
-if user_q:
-    kind = intent(user_q)
-    with st.spinner("답변 생성 중…"):
-        try:
-            if kind == "vocab":
-                ans = answer_vocab(user_q)
-            elif kind == "rule":
-                ans = answer_rule(user_q)
-            elif kind == "poly":
-                ans = answer_poly(user_q)
-            else:
-                ans = run_rag(user_q)
+with tab_ask:
+    user_q = st.text_input(
+        "🙌질문 예시: 교각살우의 뜻이 궁금해요, 늑막염의 표준 발음을 알려주세요, 자료에서 ~는 어디에 나오나요?"
+    )
 
-            st.write(ans)
+    if user_q:
+        kind = intent(user_q)
+        with st.spinner("답변 생성 중…"):
+            try:
+                if kind == "vocab":
+                    ans = answer_vocab(user_q)
+                elif kind == "rule":
+                    ans = answer_rule(user_q)
+                elif kind == "poly":
+                    ans = answer_poly(user_q)
+                else:
+                    ans = run_rag(user_q)
 
-            # 업로드 자료가 있고, RAG를 썼다면 근거 보기 제공
-            if kind == "rag" and retriever is not None:
-                with st.expander("🔎 근거 보기(업로드 자료에서 추출)"):
-                    docs = retriever.invoke(user_q)
-                    for i, d in enumerate(docs, 1):
-                        st.markdown(f"**근거 {i}**")
-                        st.code((d.page_content or "")[:800])
+                st.write(ans)
 
-        except Exception as e:
-            st.error(f"오류가 발생했습니다: {e}")
+                if kind == "rag" and retriever is not None:
+                    with st.expander("🔎 근거 보기(업로드 자료에서 추출)"):
+                        docs = retriever.invoke(user_q)
+                        for i, d in enumerate(docs, 1):
+                            st.markdown(f"**근거 {i}**")
+                            st.code((d.page_content or "")[:800])
+            except Exception as e:
+                st.error(f"오류가 발생했습니다: {e}")
+
+# ─────────────────────────────────────────────────────────────
+# 퀴즈 탭 (확장 버전: 3문항 랜덤 + 점수 + 다시 풀기)
+# ─────────────────────────────────────────────────────────────
+def build_quiz_items(vocab_df: pd.DataFrame, n: int = 3):
+    """vocab.csv에서 랜덤 문항 n개 생성.
+       문항: '표제어의 뜻으로 알맞은 것은?'  / 보기: 뜻풀이 4개(정답 1 + 오답 3)
+    """
+    df = vocab_df.dropna(subset=["표제어", "뜻풀이"]).copy()
+    # 보기 생성을 위해 최소 4개 이상의 항목이 필요
+    if len(df) < 4:
+        return []
+
+    items = []
+    idxs = list(df.index)
+    random.shuffle(idxs)
+    pick = idxs[:max(1, min(n, len(df)//1))]
+
+    for i in pick:
+        row = df.loc[i]
+        correct = str(row["뜻풀이"]).strip()
+        # 같은 '유형'에서 오답 뽑기 (없으면 전체에서)
+        pool = df[df["유형"] == row.get("유형", "")]["뜻풀이"].tolist()
+        if len(pool) < 4:
+            pool = df["뜻풀이"].tolist()
+        distractors = [x for x in pool if str(x).strip() != correct]
+        random.shuffle(distractors)
+        distractors = distractors[:3]
+        choices = [correct] + distractors
+        random.shuffle(choices)
+
+        items.append({
+            "question": f"‘{row['표제어']}’의 뜻으로 가장 알맞은 것은?",
+            "choices": choices,
+            "answer": correct,
+            "ex": str(row.get("예문", "")).strip(),
+            "meta": f"[{row.get('유형','어휘')}/{row.get('품사','-')}]"
+        })
+    return items
+
+with tab_quiz:
+    st.markdown("**무작위 어휘 퀴즈 3문항**을 풀어보세요. (vocab.csv 기반)")
+    if VOCAB.empty or len(VOCAB.dropna(subset=["표제어","뜻풀이"])) < 4:
+        st.info("퀴즈를 만들려면 `data/vocab.csv`에 최소 4개 이상의 항목이 필요합니다.")
+    else:
+        # 초기 세팅
+        if "quiz_items" not in st.session_state:
+            st.session_state.quiz_items = build_quiz_items(VOCAB, n=3)
+            st.session_state.quiz_submitted = False
+            st.session_state.quiz_score = 0
+
+        # 재출제 버튼
+        colA, colB = st.columns([1,1])
+        if colA.button("🔄 새 퀴즈 출제"):
+            st.session_state.quiz_items = build_quiz_items(VOCAB, n=3)
+            st.session_state.quiz_submitted = False
+            st.session_state.quiz_score = 0
+
+        # 문항 렌더링
+        answers = {}
+        for i, item in enumerate(st.session_state.quiz_items):
+            with st.container():
+                st.markdown(f"**Q{i+1}. {item['question']}**  \n<small>{item['meta']}</small>", unsafe_allow_html=True)
+                key = f"quiz_q_{i}"
+                choice = st.radio(
+                    "보기",
+                    options=item["choices"],
+                    index=None,
+                    key=key,
+                    label_visibility="collapsed"
+                )
+                answers[i] = choice
+                st.divider()
+
+        # 채점
+        if colB.button("✅ 제출"):
+            score = 0
+            results = []
+            for i, item in enumerate(st.session_state.quiz_items):
+                sel = answers.get(i)
+                ok = (sel == item["answer"])
+                score += int(ok)
+                results.append((ok, sel, item))
+            st.session_state.quiz_score = score
+            st.session_state.quiz_submitted = True
+
+            st.success(f"점수: **{score} / {len(st.session_state.quiz_items)}**")
+            with st.expander("정답 및 해설 보기"):
+                for i, (ok, sel, item) in enumerate(results, start=1):
+                    icon = "✅" if ok else "❌"
+                    sel_txt = sel if sel is not None else "(무응답)"
+                    st.markdown(f"**{icon} Q{i}. {item['question']}**")
+                    st.write(f"- 선택: {sel_txt}")
+                    st.write(f"- 정답: {item['answer']}")
+                    if item["ex"]:
+                        st.write(f"- 예문: {item['ex']}")
+                    st.write("---")
 
 # ─────────────────────────────────────────────────────────────
 # 사이드바: 상태/확장 안내
@@ -233,17 +330,5 @@ with st.sidebar:
     st.markdown("- 어휘: `교각살우 뜻`, `을씨년스럽다 의미`")
     st.markdown("- 규정: `같이 띄어쓰기`, `값이 발음`, `피자 표기`")
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
+    st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
-
-
-
-
-
-
-
-
-
-
-
-
-
