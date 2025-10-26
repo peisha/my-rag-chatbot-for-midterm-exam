@@ -385,8 +385,7 @@ with tab_ask:
     st.markdown(
         "<p style='font-size:18px; font-weight:600;'>🏄 저에게 질문을 해주세용 🐲!</p>"
           "<p style='margin-top:-10px; margin-bottom:-8px;'>"
-        "(e.g.<br>"
-        "교각살우의 뜻이 궁금해요,<br>"
+        "(e.g. 교각살우의 뜻이 궁금해요,<br>"
         "늑막염의 표준 발음을 알려주세요,<br>"
         "자료에서 ~는 어디에 나오나요?)"
         "</p>",
@@ -507,6 +506,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
