@@ -404,7 +404,7 @@ def build_all_quiz_items(total: int = 10) -> list[dict]:
 # ─────────────────────────────────────────────────────────────
 # 탭 UI: 질문하기 | 퀴즈
 # ─────────────────────────────────────────────────────────────
-tab_ask, tab_quiz = st.tabs(["🧐 질문하기", "🤗 퀴즈 풀기"])
+tab_ask, tab_quiz, tab_wrong = st.tabs(["🧐 질문하기", "🤗 퀴즈 풀기", "📘 오답노트"])
 
 with tab_ask:
     # 라벨 부분을 HTML로 직접 출력 (엔터 포함)
@@ -513,7 +513,42 @@ with tab_quiz:
            st.session_state.quiz_score = 0
            st.rerun()
 
-                    
+if st.button("✅ 제출", type="primary", use_container_width=True):
+    score = 0
+    wrong_items = []  # 오답 저장용 리스트
+    results = []
+
+    for i, item in enumerate(st.session_state.quiz_items):
+        sel = answers.get(i)
+        ok = (sel == item["answer"])
+        score += int(ok)
+        results.append((ok, sel, item))
+        if not ok:  # ❌ 오답이면
+            wrong_items.append({
+                "문항": item["question"],
+                "선택한 답": sel,
+                "정답": item["answer"],
+                "예문": item.get("ex", "")
+            })
+
+    # 세션에 오답 저장
+    st.session_state["wrong_items"] = wrong_items
+    st.session_state.quiz_score = score
+    st.session_state.quiz_submitted = True
+
+with tab_wrong:
+    st.markdown("📘 **오답노트** (틀린 문제 복습 코너)")
+    if "wrong_items" not in st.session_state or not st.session_state["wrong_items"]:
+        st.info("아직 오답이 없습니다! 퀴즈를 먼저 풀어보세요 😎")
+    else:
+        for i, w in enumerate(st.session_state["wrong_items"], start=1):
+            st.markdown(f"**Q{i}. {w['문항']}**")
+            st.write(f"- 선택한 답: {w['선택한 답']}")
+            st.write(f"- 정답: {w['정답']}")
+            if w["예문"]:
+                st.write(f"- 예문: {w['예문']}")
+            st.divider()
+
 # ─────────────────────────────────────────────────────────────
 # 사이드바: 상태/확장 안내
 # ─────────────────────────────────────────────────────────────
@@ -532,6 +567,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
