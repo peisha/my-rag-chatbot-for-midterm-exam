@@ -260,11 +260,6 @@ def _read_csv_expect(path: str, expected_cols: list[str]) -> pd.DataFrame:
     return df[expected_cols].fillna("").astype(str)
 
 # ==== 통합 어휘 퀴즈 ====
-QUIZ_COUNT = 10
-
-st.session_state.quiz_items = build_all_quiz_items(total=QUIZ_COUNT)
-# 또는 build_quiz_items(VOCAB, n=QUIZ_COUNT)
-
 def build_quiz_lexicon(df: pd.DataFrame, n: int) -> list[dict]:
     need = {"유형","어휘","뜻풀이"}
     if not need.issubset(df.columns) or df.empty: return []
@@ -537,7 +532,33 @@ with tab_quiz:
             st.session_state.quiz_submitted = False
             st.session_state.quiz_score = 0
             st.rerun()
+            
+# ─────────────────────────────────────────────────────────────
+# 오답노트 탭
+# ─────────────────────────────────────────────────────────────
+with tab_wrong:
+    st.markdown("📘 **오답노트** (틀린 문제 복습 코너)")
 
+    # 비우기 버튼 (선택)
+    col1, col2 = st.columns([1,3])
+    with col1:
+        if st.button("🧹 오답노트 비우기", key="clear_wrong_btn"):
+            st.session_state["wrong_items"] = []
+            st.success("오답노트를 비웠어요!")
+
+    wrong_items = st.session_state.get("wrong_items", [])
+
+    if not wrong_items:
+        st.info("아직 오답이 없습니다! 퀴즈를 먼저 풀어보세요 😎")
+    else:
+        for i, w in enumerate(wrong_items, start=1):
+            st.markdown(f"**Q{i}. {w.get('문항','(문항 정보 없음)')}**")
+            st.write(f"- 선택한 답: {w.get('선택한 답', '(무응답)')}")
+            st.write(f"- 정답: {w.get('정답', '-')}")
+            ex = w.get("예문", "")
+            if isinstance(ex, str) and ex.strip():
+                st.write(f"- 예문: {ex}")
+            st.divider()
 
 # ─────────────────────────────────────────────────────────────
 # 사이드바: 상태/확장 안내
@@ -557,6 +578,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
