@@ -28,8 +28,8 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# 제목과 안내문 사이 2줄 공백
-st.markdown("<br><br>", unsafe_allow_html=True)
+# 제목과 안내문 사이 1줄 공백
+st.markdown("<br>", unsafe_allow_html=True)
 
 # 안내문 (두 줄로 줄바꿈 적용)
 st.markdown(
@@ -526,6 +526,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
