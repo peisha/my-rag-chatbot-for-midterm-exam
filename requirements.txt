@@ -13,3 +13,4 @@ streamlit
 plotly
 folium
 streamlit_folium
+pypdf
