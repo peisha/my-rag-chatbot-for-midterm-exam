@@ -55,6 +55,20 @@ def load_rules_list():
     ...
 @st.cache_data
 def load_poly_df():
+    """data/polysemy.csv (표제어,의미번호,뜻,예문) → 항상 DataFrame 반환"""
+    path = "data/polysemy.csv"
+    cols = ["표제어","의미번호","뜻","예문"]
+    if not os.path.exists(path):
+        return pd.DataFrame(columns=cols)
+    try:
+        df = pd.read_csv(path)
+    except Exception:
+        return pd.DataFrame(columns=cols)
+    # 누락 컬럼 보정
+    for c in cols:
+        if c not in df.columns:
+            df[c] = ""
+    return df[cols].fillna("").astype(str)
     ...
 # ← 여기도 교체
 VOCAB = load_lexicon_df()
@@ -459,7 +473,9 @@ with st.sidebar:
     st.markdown("### 상태")
     st.write(f"- 어휘 사전 로드: {'✅' if not VOCAB.empty else '❌'}")
     st.write(f"- 규정 카드 로드: {'✅' if RULES else '❌'}")
-    st.write(f"- 다의어 카드 로드: {'✅' if not POLY.empty else '❌'}")
+    # 기존: st.write(f"- 다의어 카드 로드: {'✅' if not POLY.empty else '❌'}")
+    poly_ok = isinstance(POLY, pd.DataFrame) and not POLY.empty
+    st.write(f"- 다의어 카드 로드: {'✅' if poly_ok else '❌'}")
     st.write(f"- 업로드 자료 색인: {'✅' if retriever is not None else '❌'}")
     st.divider()
     st.markdown("### 사용법")
@@ -468,6 +484,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
