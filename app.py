@@ -1,4 +1,4 @@
-# app.py — KBS 한국어능력시험 RAG 튜터 (어휘/규정 + 파일기반 RAG)
+# app.py — KBS 한국어능력시험 RAG 튜터 (어휘/규정/다의어 + 파일기반 RAG)
 import os
 import json
 import pandas as pd
@@ -18,11 +18,11 @@ load_dotenv(override=True)
 
 # 2) Streamlit 기본 설정
 st.set_page_config(page_title="KBS 한국어능력시험 RAG 튜터", layout="wide")
-st.title("🧠 KBS 한국어능력시험 RAG 튜터")
-st.caption("자료 출처: 개인 요약본 및 학습용 정리. 규정 근거는 국립국어원 『한글맞춤법/표준발음법/외래어·로마자 표기법』, 그리고 『표준국어대사전』 두 개 따릅니다. (문항은 창작/재구성)")
+st.title("✨😎 KBS 한국어능력시험 RAG 튜터 💕💫")
+st.caption("자료 출처: 개인 요약본 및 학습용 정리. 규정 근거는 국립국어원 『한글맞춤법/표준발음법/외래어·로마자 표기법』과 『표준국어대사전』을 따릅니다. (문항은 창작/재구성)")
 
 # ─────────────────────────────────────────────────────────────
-# 데이터 로더 (어휘/규정) - 업로드 없이도 동작
+# 데이터 로더 (어휘/규정/다의어) - 업로드 없이도 동작
 # ─────────────────────────────────────────────────────────────
 @st.cache_data
 def load_vocab_df():
@@ -41,8 +41,18 @@ def load_rules_list():
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
+# ✅ 다의어 로더 추가 (여기에요!)
+@st.cache_data
+def load_poly_df():
+    """data/polysemy.csv (표제어,의미번호,뜻,예문)"""
+    path = "data/polysemy.csv"
+    if not os.path.exists(path):
+        return pd.DataFrame(columns=["표제어","의미번호","뜻","예문"])
+    return pd.read_csv(path)
+
 VOCAB = load_vocab_df()
 RULES = load_rules_list()
+POLY  = load_poly_df()
 
 # ─────────────────────────────────────────────────────────────
 # 파일 업로드 → 텍스트 추출 → 벡터DB 구성 (업로드시만)
@@ -106,12 +116,14 @@ def run_rag(question: str) -> str:
     return chain.invoke({"context": context, "question": question})
 
 # ─────────────────────────────────────────────────────────────
-# 간단 의도 분류 → (어휘/규정/파일 RAG) 라우팅
+# 간단 의도 분류 → (어휘/규정/다의어/파일 RAG) 라우팅
 # ─────────────────────────────────────────────────────────────
 def intent(text: str) -> str:
     t = text.strip()
     if any(k in t for k in ["맞춤법","띄어쓰기","발음","외래어","로마자","표기","옳은 표기","맞나요"]):
         return "rule"
+    if any(k in t for k in ["다의어","여러 뜻","뜻들","의미들"]):
+        return "poly"
     if any(k in t for k in ["뜻","의미","사자성어","속담","유의어","관용구","단어"]):
         return "vocab"
     return "rag"
@@ -120,7 +132,6 @@ def answer_vocab(q: str) -> str:
     """vocab.csv에서 표제어 부분일치 1건 찾아 설명"""
     if VOCAB.empty:
         return "사전 데이터(vocab.csv)가 아직 없습니다. 먼저 data/vocab.csv를 채워 주세요."
-    # 표제어가 질문에 포함된 행들
     hit = VOCAB[VOCAB["표제어"].apply(lambda w: isinstance(w, str) and w in q)]
     if len(hit):
         row = hit.iloc[0]
@@ -141,7 +152,6 @@ def answer_rule(q: str) -> str:
     """rules.json에서 항목 키워드 부분일치 검색 (여러 개면 첫 항목)"""
     if not RULES:
         return "규정 데이터(rules.json)가 아직 없습니다. 먼저 data/rules.json을 채워 주세요."
-    # 항목/설명에 q 일부가 들어가는 항목 우선
     candidates = []
     for item in RULES:
         text_blob = f"{item.get('항목','')} {item.get('설명','')}"
@@ -158,14 +168,29 @@ def answer_rule(q: str) -> str:
     ex = target.get('예시','')
     if isinstance(ex, str) and ex.strip():
         lines.append(f"예시: {ex}")
-    # 규정 근거는 일반 고지로 처리(세부 조항은 보고서/앱 하단 고지로 충분)
+    return "\n".join(lines)
+
+# ✅ 다의어 답변 함수 추가
+def answer_poly(q: str) -> str:
+    if POLY.empty:
+        return "다의어 데이터(polysemy.csv)가 아직 없습니다."
+    # 질문 속 단어를 추정: CSV의 표제어 중 포함되는 것 고르기
+    cands = [w for w in POLY["표제어"].unique() if isinstance(w, str) and w in q]
+    if not cands:
+        return "어떤 단어의 여러 뜻을 묻는지 알려 주세요. (예: '들다 다의어 알려줘')"
+    w = max(cands, key=len)
+    rows = POLY[POLY["표제어"] == w]
+    lines = [f"‘{w}’의 뜻"]
+    for _, r in rows.sort_values("의미번호").iterrows():
+        num = int(r["의미번호"]) if str(r["의미번호"]).isdigit() else r["의미번호"]
+        lines.append(f" {num}. {r['뜻']}  (예: {r['예문']})")
     return "\n".join(lines)
 
 # ─────────────────────────────────────────────────────────────
 # 질의 UI
 # ─────────────────────────────────────────────────────────────
 st.subheader("💬 질문하기")
-user_q = st.text_input("예: '교각살우 뜻', '같이 띄어쓰기', '값이 발음', '자료에서 ~는 어디에 나오나요?'")
+user_q = st.text_input("예: '교각살우 뜻', '같이 띄어쓰기', '값이 발음', '들다 다의어', '자료에서 ~는 어디에 나오나요?'")
 
 if user_q:
     kind = intent(user_q)
@@ -175,6 +200,8 @@ if user_q:
                 ans = answer_vocab(user_q)
             elif kind == "rule":
                 ans = answer_rule(user_q)
+            elif kind == "poly":
+                ans = answer_poly(user_q)
             else:
                 ans = run_rag(user_q)
 
@@ -198,10 +225,11 @@ with st.sidebar:
     st.markdown("### 상태")
     st.write(f"- 어휘 사전 로드: {'✅' if not VOCAB.empty else '❌'}")
     st.write(f"- 규정 카드 로드: {'✅' if len(RULES)>0 else '❌'}")
+    st.write(f"- 다의어 카드 로드: {'✅' if not POLY.empty else '❌'}")
     st.write(f"- 업로드 자료 색인: {'✅' if retriever is not None else '❌'}")
     st.divider()
     st.markdown("### 사용법")
     st.markdown("- 어휘: `교각살우 뜻`, `을씨년스럽다 의미`")
     st.markdown("- 규정: `같이 띄어쓰기`, `값이 발음`, `피자 표기`")
+    st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
-
