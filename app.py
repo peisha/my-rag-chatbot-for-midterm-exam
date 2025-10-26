@@ -19,6 +19,7 @@ load_dotenv(override=True)
 
 # 2) Streamlit 기본 설정
 st.set_page_config(page_title="KBS 한국어능력시험 RAG 튜터", layout="wide")
+# 제목 (두 줄)
 st.markdown(
     "<h1 style='text-align:center; line-height:1.3;'>"
     "✨😎 오로지 당신만을 위한~!<br>"
@@ -27,7 +28,17 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.caption("❗본 자료의 규정 근거는 국립국어원에서 기술한 『한글맞춤법/표준발음법/외래어·로마자 표기법』, 그리고 『표준국어대사전』 두 가지에 있음을 알려드립니다.")
+# 제목과 안내문 사이 2줄 공백
+st.markdown("<br><br>", unsafe_allow_html=True)
+
+# 안내문 (두 줄로 줄바꿈 적용)
+st.markdown(
+    "<p style='color:gray; text-align:center; font-size:16px;'>"
+    "❗본 자료의 규정 근거는 국립국어원에서 기술한 『한글맞춤법/표준발음법/외래어·로마자 표기법』,<br>"
+    "그리고 『표준국어대사전』 두 가지에 있음을 알려드립니다."
+    "</p>",
+    unsafe_allow_html=True
+)
 
 # ───────── 데이터 로더 (어휘/규정/다의어)
 @st.cache_data
@@ -513,6 +524,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
