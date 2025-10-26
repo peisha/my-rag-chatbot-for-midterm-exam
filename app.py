@@ -259,17 +259,11 @@ def build_quiz_items(vocab_df: pd.DataFrame, n: int = 3):
 
 with tab_quiz:
     st.markdown("❤️짜란! **랜덤 퀴즈** 3문항을 풀어보세요!😘")
-    if VOCAB.empty or len(VOCAB.dropna(subset=["표제어","뜻풀이"])) < 4:
+     if VOCAB.empty or len(VOCAB.dropna(subset=["표제어","뜻풀이"])) < 4:
         st.info("퀴즈를 만들려면 `data/vocab.csv`에 최소 4개 이상의 항목이 필요합니다.")
     else:
         # 초기 세션 상태
         if "quiz_items" not in st.session_state:
-            st.session_state.quiz_items = build_quiz_items(VOCAB, n=3)
-            st.session_state.quiz_submitted = False
-            st.session_state.quiz_score = 0
-
-        # 상단: 새 퀴즈 출제
-        if st.button("🔄 새 퀴즈 출제", use_container_width=True):
             st.session_state.quiz_items = build_quiz_items(VOCAB, n=3)
             st.session_state.quiz_submitted = False
             st.session_state.quiz_score = 0
@@ -292,7 +286,7 @@ with tab_quiz:
             answers[i] = choice
             st.divider()
 
-        # 맨 아래: 제출 버튼 (단일)
+        # ✅ 제출 버튼 (맨 아래)
         if st.button("✅ 제출", type="primary", use_container_width=True):
             score = 0
             results = []
@@ -315,6 +309,13 @@ with tab_quiz:
                     if item["ex"]:
                         st.write(f"- 예문: {item['ex']}")
                     st.write("---")
+
+        # 🔄 새 퀴즈 출제 버튼 (제출 아래)
+        if st.button("🔄 새 퀴즈 출제", use_container_width=True):
+            st.session_state.quiz_items = build_quiz_items(VOCAB, n=3)
+            st.session_state.quiz_submitted = False
+            st.session_state.quiz_score = 0
+            st.experimental_rerun()
                     
 # ─────────────────────────────────────────────────────────────
 # 사이드바: 상태/확장 안내
@@ -332,6 +333,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
