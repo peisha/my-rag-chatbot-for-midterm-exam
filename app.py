@@ -389,7 +389,7 @@ with tab_ask:
     st.markdown(
         "<br><br>"
         "<p style='color:skyblue; font-size:20px; font-weight:600; text-align:center;'>"
-        "파이팅! 쌤은 여러분의 시험을 응원합니다~! 🥰"
+        "파이팅!!! 쌤은 여러분의 시험을 응원합니다~! 🥰"
         "</p>",
         unsafe_allow_html=True
     )
@@ -496,6 +496,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
