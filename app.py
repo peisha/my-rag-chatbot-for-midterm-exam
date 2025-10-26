@@ -99,10 +99,16 @@ POLY  = load_poly_df()
 # 파일 업로드 → 텍스트 추출 → 벡터DB 구성 (업로드시만)
 # ─────────────────────────────────────────────────────────────
 st.markdown(
-    "<h5 style='margin-bottom: 0.3em;'>🗂️ 별도로 학습시키고 싶은 자료가 있으시다면 하단에 첨부해주세요. </h5>",
+    """
+    <p style='text-align:center; font-size:15px; color:#4b5563; margin-top:10px; margin-bottom:14px;'>
+        📂 별도로 학습시키고 싶은 자료가 있으시다면<br>
+        <span style='color:#111827; font-weight:600;'>하단에 첨부해주세요.</span>
+    </p>
+    """,
     unsafe_allow_html=True
 )
-uploaded = st.file_uploader("txt 또는 pdf 파일을 업로드하세요", type=["txt", "pdf"])
+
+uploaded = st.file_uploader("이곳에 txt 또는 pdf 파일을 업로드하세요", type=["txt", "pdf"])
 
 def load_text(file):
     if file is None:
@@ -403,7 +409,7 @@ tab_ask, tab_quiz = st.tabs(["🧐 질문하기", "🤗 퀴즈 풀기"])
 with tab_ask:
     # 라벨 부분을 HTML로 직접 출력 (엔터 포함)
     st.markdown(
-        "<p style='font-size:18px; font-weight:600;'>🏄 저에게 질문을 해주세용 🐲!</p>"
+        "<p style='font-size:18px; font-weight:600;'>🌟 저에게 질문을 해주세용 🐲!</p>"
         "<p style='font-size:14px; color:#555; margin-top:-10px; margin-bottom:-8px;'>"
         "(e.g. '교각살우'의 뜻이 궁금해요,<br>"
         "'늑막염'의 표준 발음을 알려주세요,<br>"
@@ -526,6 +532,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
