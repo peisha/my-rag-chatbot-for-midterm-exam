@@ -338,8 +338,7 @@ with tab_quiz:
             st.session_state.quiz_items = build_quiz_items(VOCAB, n=3)
             st.session_state.quiz_submitted = False
             st.session_state.quiz_score = 0
-            st.experimental_rerun()
-
+            st.rerun()
                     
 # ─────────────────────────────────────────────────────────────
 # 사이드바: 상태/확장 안내
@@ -357,5 +356,6 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
