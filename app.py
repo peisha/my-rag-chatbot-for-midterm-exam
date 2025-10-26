@@ -183,6 +183,64 @@ def answer_poly(q: str) -> str:
         lines.append(f" {num}. {r['뜻']}  (예: {r['예문']})")
     return "\n".join(lines)
 
+# ─────────────────────────────────────────────────────────────
+# 퀴즈 문항 생성기: vocab.csv에서 n문항 뽑기 (메타는 [유형]만)
+# ─────────────────────────────────────────────────────────────
+def build_quiz_items(df: pd.DataFrame, n: int = 3):
+    """
+    df: columns = [유형, 표제어, 뜻풀이, 예문, 비고]
+    반환: [{"question","choices","answer","ex","meta"}, ...]
+    """
+    # 최소 컬럼 체크
+    need_cols = {"유형", "표제어", "뜻풀이"}
+    if not need_cols.issubset(df.columns):
+        return []
+
+    base = df.dropna(subset=["표제어", "뜻풀이"]).copy()
+    if base.empty:
+        return []
+
+    items = []
+    # 표본을 섞어서 위에서부터 채택
+    base = base.sample(frac=1.0, random_state=None)
+
+    for _, row in base.iterrows():
+        q_word   = str(row["표제어"]).strip()
+        correct  = str(row["뜻풀이"]).strip()
+        cat      = str(row.get("유형", "어휘")).strip()
+        example  = str(row.get("예문", "")).strip()
+
+        if not q_word or not correct:
+            continue
+
+        # 같은 유형에서 오답 고르기 (부족하면 전체에서 보충)
+        same_pool = base[(base["유형"] == cat) & (base["뜻풀이"] != correct)]["뜻풀이"].dropna().unique().tolist()
+        if len(same_pool) < 3:
+            same_pool = base[base["뜻풀이"] != correct]["뜻풀이"].dropna().unique().tolist()
+
+        if len(same_pool) < 3:
+            # 오답이 3개 미만이면 건너뛰기
+            continue
+
+        distractors = random.sample(same_pool, 3)
+        choices = distractors + [correct]
+        random.shuffle(choices)
+
+        # ✅ 메타는 [유형]만
+        meta = f"[{cat}]"
+
+        items.append({
+            "question": f"‘{q_word}’의 뜻으로 가장 알맞은 것은?",
+            "choices": choices,
+            "answer": correct,
+            "ex": example,
+            "meta": meta
+        })
+
+        if len(items) >= n:
+            break
+
+    return items
 
 # ─────────────────────────────────────────────────────────────
 # 탭 UI: 질문하기 | 퀴즈
@@ -299,4 +357,5 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
