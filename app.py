@@ -18,7 +18,7 @@ load_dotenv(override=True)
 
 # 2) Streamlit 기본 설정
 st.set_page_config(page_title="KBS 한국어능력시험 RAG 튜터", layout="wide")
-st.title("✨😎 KBS 한국어능력시험 RAG 튜터 💕💫")
+st.title("✨😎 오로지 당신만을 위한~! KBS 한국어능력시험 쌤 💕💫")
 st.caption("자료 출처: 개인 요약본 및 학습용 정리. 규정 근거는 국립국어원 『한글맞춤법/표준발음법/외래어·로마자 표기법』과 『표준국어대사전』을 따릅니다. (문항은 창작/재구성)")
 
 # ─────────────────────────────────────────────────────────────
@@ -233,3 +233,4 @@ with st.sidebar:
     st.markdown("- 규정: `같이 띄어쓰기`, `값이 발음`, `피자 표기`")
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
