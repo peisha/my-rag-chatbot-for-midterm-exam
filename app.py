@@ -384,10 +384,10 @@ with tab_ask:
     # 라벨 부분을 HTML로 직접 출력 (엔터 포함)
     st.markdown(
         "<p style='font-size:18px; font-weight:600;'>🏄 저에게 질문을 해주세용 🐲!</p>"
-          "<p style='margin-top:-10px; margin-bottom:-8px;'>"
-        "(e.g. 교각살우의 뜻이 궁금해요,<br>"
-        "늑막염의 표준 발음을 알려주세요,<br>"
-        "자료에서 ~는 어디에 나오나요?)"
+        "<p style='font-size:14px; color:#555; margin-top:-10px; margin-bottom:-8px;'>"
+        "(e.g. '교각살우'의 뜻이 궁금해요,<br>"
+        "'늑막염'의 표준 발음을 알려주세요,<br>"
+        "자료에서 ~ 는 어디에 나오나요?)"
         "</p>",
         unsafe_allow_html=True
     )
@@ -432,7 +432,7 @@ with tab_ask:
 # 퀴즈 탭 (확장 버전: 제출 → 결과 → 새 퀴즈 버튼 순서)
 # ─────────────────────────────────────────────────────────────
 with tab_quiz:
-    st.markdown("❤️짜란! **랜덤 종합 퀴즈**를 풀어보세요!😘")
+    st.markdown("❤️쨔란! **랜덤 종합 퀴즈**를 풀어보세요!😘")
 
     # 처음 로드 시 data/ 모든 CSV 기반으로 혼합 퀴즈 생성
     if "quiz_items" not in st.session_state or not st.session_state.quiz_items:
@@ -506,6 +506,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
