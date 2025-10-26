@@ -22,34 +22,42 @@ st.set_page_config(page_title="KBS 한국어능력시험 RAG 튜터", layout="wi
 st.title("✨😎 오로지 당신만을 위한~! KBS 한국어능력시험 쌤 💕💫")
 st.caption("❗본 자료의 규정 근거는 국립국어원에서 기술한 『한글맞춤법/표준발음법/외래어·로마자 표기법』, 그리고 『표준국어대사전』 두 가지에 있음을 알려드립니다.😘")
 
-# ─────────────────────────────────────────────────────────────
-# 데이터 로더 (어휘/규정/다의어) - 업로드 없이도 동작
-# ─────────────────────────────────────────────────────────────
+# ───────── 데이터 로더 (어휘/규정/다의어)
 @st.cache_data
-def load_vocab_df():
-    """data/vocab.csv (유형,표제어,뜻풀이,예문,비고)"""
-    path = "data/vocab.csv"
-    if not os.path.exists(path):
-        return pd.DataFrame(columns=["유형","표제어","뜻풀이","예문","비고"])
-    return pd.read_csv(path)
+def load_lexicon_df():
+    """
+    통합 어휘 로더: 고유어/관용구/속담/사자성어/순화어
+    각 CSV 스키마: [유형, 어휘, 뜻풀이] (예문, 비고는 선택)
+    """
+    files = [
+        "data/고유어.csv", "data/관용구.csv", "data/속담.csv",
+        "data/사자성어.csv", "data/순화어.csv",
+    ]
+    cols_base = ["유형", "어휘", "뜻풀이"]
+    dfs = []
+    for p in files:
+        if os.path.exists(p):
+            df = pd.read_csv(p)
+            for c in cols_base:
+                if c not in df.columns: df[c] = ""
+            for c in ["예문", "비고"]:
+                if c not in df.columns: df[c] = ""
+            dfs.append(df[cols_base + ["예문", "비고"]])
+    if not dfs:
+        return pd.DataFrame(columns=cols_base + ["예문", "비고"])
+    out = pd.concat(dfs, ignore_index=True)
+    for c in out.columns:
+        out[c] = out[c].fillna("").astype(str)
+    return out
+
 @st.cache_data
 def load_rules_list():
-    """data/rules.json (규정명,항목,설명,예시)"""
-    path = "data/rules.json"
-    if not os.path.exists(path):
-        return []
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
+    ...
 @st.cache_data
 def load_poly_df():
-    """data/polysemy.csv (표제어,의미번호,뜻,예문)"""
-    path = "data/polysemy.csv"
-    if not os.path.exists(path):
-        return pd.DataFrame(columns=["표제어","의미번호","뜻","예문"])
-    return pd.read_csv(path)
-
-VOCAB = load_vocab_df()
+    ...
+# ← 여기도 교체
+VOCAB = load_lexicon_df()
 RULES = load_rules_list()
 POLY  = load_poly_df()
 
@@ -129,12 +137,12 @@ def intent(text: str) -> str:
 
 def answer_vocab(q: str) -> str:
     if VOCAB.empty:
-        return "사전 데이터(vocab.csv)가 아직 없습니다. 먼저 data/vocab.csv를 채워 주세요."
-    hit = VOCAB[VOCAB["표제어"].apply(lambda w: isinstance(w, str) and w in q)]
+        return "사전 데이터(고유어·관용구·속담·사자성어·순화어 CSV)가 아직 없습니다."
+    hit = VOCAB[VOCAB["어휘"].apply(lambda w: isinstance(w, str) and w in q)]
     if len(hit):
         row = hit.iloc[0]
         lines = [
-            f"〔{row.get('유형','어휘')}〕 {row.get('표제어','-')}",
+            f"〔{row.get('유형','어휘')}〕 {row.get('어휘','-')}",
             f"뜻: {row.get('뜻풀이','-')}",
         ]
         ex = row.get("예문","")
@@ -145,7 +153,8 @@ def answer_vocab(q: str) -> str:
             lines.append(f"비고: {extra}")
         return "\n".join(lines)
     back = run_rag(f"어휘 의미: {q}")
-    return "사전에 직접 일치하는 표제어가 없어요.\n\n" + back
+    return "사전에 직접 일치하는 어휘가 없어요.\n\n" + back
+
 
 def answer_rule(q: str) -> str:
     """rules.json에서 항목 키워드 부분일치 검색 (여러 개면 첫 항목)"""
@@ -186,61 +195,156 @@ def answer_poly(q: str) -> str:
 # ─────────────────────────────────────────────────────────────
 # 퀴즈 문항 생성기: vocab.csv에서 n문항 뽑기 (메타는 [유형]만)
 # ─────────────────────────────────────────────────────────────
-def build_quiz_items(df: pd.DataFrame, n: int = 3):
-    """
-    df: columns = [유형, 표제어, 뜻풀이, 예문, 비고]
-    반환: [{"question","choices","answer","ex","meta"}, ...]
-    """
-    # 최소 컬럼 체크
-    need_cols = {"유형", "표제어", "뜻풀이"}
-    if not need_cols.issubset(df.columns):
-        return []
+# ==== 공통: CSV 안전 로더 ====
+def _read_csv_expect(path: str, expected_cols: list[str]) -> pd.DataFrame:
+    if not os.path.exists(path):
+        return pd.DataFrame(columns=expected_cols)
+    df = pd.read_csv(path)
+    for c in expected_cols:
+        if c not in df.columns: df[c] = ""
+    return df[expected_cols].fillna("").astype(str)
 
-    base = df.dropna(subset=["표제어", "뜻풀이"]).copy()
-    if base.empty:
-        return []
-
+# ==== 통합 어휘 퀴즈 ====
+def build_quiz_lexicon(df: pd.DataFrame, n: int) -> list[dict]:
+    need = {"유형","어휘","뜻풀이"}
+    if not need.issubset(df.columns) or df.empty: return []
+    base = df.dropna(subset=["어휘","뜻풀이"]).copy().sample(frac=1.0)
     items = []
-    # 표본을 섞어서 위에서부터 채택
-    base = base.sample(frac=1.0, random_state=None)
-
-    for _, row in base.iterrows():
-        q_word   = str(row["표제어"]).strip()
-        correct  = str(row["뜻풀이"]).strip()
-        cat      = str(row.get("유형", "어휘")).strip()
-        example  = str(row.get("예문", "")).strip()
-
-        if not q_word or not correct:
-            continue
-
-        # 같은 유형에서 오답 고르기 (부족하면 전체에서 보충)
-        same_pool = base[(base["유형"] == cat) & (base["뜻풀이"] != correct)]["뜻풀이"].dropna().unique().tolist()
-        if len(same_pool) < 3:
-            same_pool = base[base["뜻풀이"] != correct]["뜻풀이"].dropna().unique().tolist()
-
-        if len(same_pool) < 3:
-            # 오답이 3개 미만이면 건너뛰기
-            continue
-
-        distractors = random.sample(same_pool, 3)
-        choices = distractors + [correct]
+    for _, r in base.iterrows():
+        q_word, correct = r["어휘"].strip(), r["뜻풀이"].strip()
+        cat, ex = r.get("유형","어휘"), str(r.get("예문","")).strip()
+        if not q_word or not correct: continue
+        same = base[(base["유형"]==cat) & (base["뜻풀이"]!=correct)]["뜻풀이"].unique().tolist()
+        if len(same) < 3:
+            same = base[base["뜻풀이"]!=correct]["뜻풀이"].unique().tolist()
+        if len(same) < 3: continue
+        choices = random.sample(same, 3) + [correct]
         random.shuffle(choices)
-
-        # ✅ 메타는 [유형]만
-        meta = f"[{cat}]"
-
-        items.append({
-            "question": f"‘{q_word}’의 뜻으로 가장 알맞은 것은?",
-            "choices": choices,
-            "answer": correct,
-            "ex": example,
-            "meta": meta
-        })
-
-        if len(items) >= n:
-            break
-
+        items.append({"question": f"‘{q_word}’의 뜻으로 가장 알맞은 것은?",
+                      "choices": choices, "answer": correct, "ex": ex, "meta": f"[{cat}]"})
+        if len(items) >= n: break
     return items
+
+# ==== 띄어쓰기 ====
+def build_quiz_spacing(n: int) -> list[dict]:
+    df = _read_csv_expect("data/띄어쓰기.csv", ["유형","정답","오답"])
+    items = []
+    if df.empty: return items
+    for _, r in df.sample(frac=1.0).iterrows():
+        wrong, correct, cat = r["오답"], r["정답"], r.get("유형","띄어쓰기")
+        if not wrong or not correct: continue
+        other = df[df["정답"]!=correct]["정답"].unique().tolist()
+        if len(other) < 3: continue
+        choices = random.sample(other, 3) + [correct]
+        random.shuffle(choices)
+        items.append({"question": f"‘{wrong}’의 올바른 띄어쓰기는?",
+                      "choices": choices, "answer": correct, "ex": "", "meta": f"[{cat}]"})
+        if len(items) >= n: break
+    return items
+
+# ==== 맞춤법 ====
+def build_quiz_orthography(n: int) -> list[dict]:
+    df = _read_csv_expect("data/맞춤법.csv", ["유형","정답 단어","오답 단어"])
+    items = []
+    if df.empty: return items
+    rights = df["정답 단어"].unique().tolist()
+    for _, r in df.sample(frac=1.0).iterrows():
+        wrong, correct, cat = r["오답 단어"], r["정답 단어"], r.get("유형","맞춤법")
+        if not wrong or not correct: continue
+        other = [x for x in rights if x != correct]
+        if len(other) < 3: continue
+        choices = random.sample(other, 3) + [correct]
+        random.shuffle(choices)
+        items.append({"question": f"‘{wrong}’의 올바른 표기는?",
+                      "choices": choices, "answer": correct, "ex": "", "meta": f"[{cat}]"})
+        if len(items) >= n: break
+    return items
+
+# ==== 외래어 ====
+def build_quiz_loanword(n: int) -> list[dict]:
+    df = _read_csv_expect("data/외래어.csv", ["유형","정답 외래어","오답 외래어"])
+    items = []
+    if df.empty: return items
+    rights = df["정답 외래어"].unique().tolist()
+    for _, r in df.sample(frac=1.0).iterrows():
+        wrong, correct, cat = r["오답 외래어"], r["정답 외래어"], r.get("유형","외래어")
+        if not wrong or not correct: continue
+        other = [x for x in rights if x != correct]
+        if len(other) < 3: continue
+        choices = random.sample(other, 2) + [wrong] + [correct]
+        random.shuffle(choices)
+        items.append({"question": "다음 중 올바른 외래어 표기는?",
+                      "choices": choices, "answer": correct, "ex": "", "meta": f"[{cat}]"})
+        if len(items) >= n: break
+    return items
+
+# ==== 표준발음법 ====
+def build_quiz_pron(n: int) -> list[dict]:
+    df = _read_csv_expect("data/표준발음법.csv", ["유형","단어","표준 발음"])
+    items = []
+    if df.empty: return items
+    for _, r in df.sample(frac=1.0).iterrows():
+        word, correct, cat = r["단어"], r["표준 발음"], r.get("유형","표준발음법")
+        if not word or not correct: continue
+        other = df[df["표준 발음"]!=correct]["표준 발음"].unique().tolist()
+        if len(other) < 3: continue
+        choices = random.sample(other, 3) + [correct]
+        random.shuffle(choices)
+        items.append({"question": f"‘{word}’의 표준 발음은?",
+                      "choices": choices, "answer": correct, "ex": "", "meta": f"[{cat}]"})
+        if len(items) >= n: break
+    return items
+
+# ==== 로마자표기법 ====
+def build_quiz_romaja(n: int) -> list[dict]:
+    df = _read_csv_expect("data/로마자표기법.csv", ["유형","단어","로마자"])
+    items = []
+    if df.empty: return items
+    for _, r in df.sample(frac=1.0).iterrows():
+        word, correct, cat = r["단어"], r["로마자"], r.get("유형","로마자표기법")
+        if not word or not correct: continue
+        other = df[df["로마자"]!=correct]["로마자"].unique().tolist()
+        if len(other) < 3: continue
+        choices = random.sample(other, 3) + [correct]
+        random.shuffle(choices)
+        items.append({"question": f"‘{word}’의 로마자 표기는?",
+                      "choices": choices, "answer": correct, "ex": "", "meta": f"[{cat}]"})
+        if len(items) >= n: break
+    return items
+
+# ==== 표준어규정 (유형/단어) ====
+def build_quiz_standard_rule(n: int) -> list[dict]:
+    df = _read_csv_expect("data/표준어규정.csv", ["유형","단어"])
+    items = []
+    if df.empty: return items
+    kinds = df["유형"].dropna().unique().tolist()
+    if len(kinds) < 4 and kinds:
+        while len(kinds) < 4: kinds.append(random.choice(kinds))
+    for _, r in df.sample(frac=1.0).iterrows():
+        word, correct = r["단어"], r["유형"]
+        if not word or not correct: continue
+        wrongs = [k for k in kinds if k != correct]
+        if len(wrongs) < 3: continue
+        choices = random.sample(wrongs, 3) + [correct]
+        random.shuffle(choices)
+        items.append({"question": f"‘{word}’은(는) 어떤 표준어 규정에 해당할까요?",
+                      "choices": choices, "answer": correct, "ex": "", "meta": "[표준어규정]"})
+        if len(items) >= n: break
+    return items
+
+# ==== 전체 혼합 퀴즈 ====
+def build_all_quiz_items(total: int = 10) -> list[dict]:
+    per = max(1, total // 6)   # 대략 균등
+    items = []
+    items += build_quiz_lexicon(VOCAB, n=per*2)   # 어휘 비중 조금 더
+    items += build_quiz_spacing(per)
+    items += build_quiz_orthography(per)
+    items += build_quiz_loanword(per)
+    items += build_quiz_pron(per)
+    items += build_quiz_romaja(per)
+    items += build_quiz_standard_rule(per)
+    random.shuffle(items)
+    return items[:total]
 
 # ─────────────────────────────────────────────────────────────
 # 탭 UI: 질문하기 | 퀴즈
@@ -280,18 +384,17 @@ with tab_ask:
 # 퀴즈 탭 (확장 버전: 제출 → 결과 → 새 퀴즈 버튼 순서)
 # ─────────────────────────────────────────────────────────────
 with tab_quiz:
-    st.markdown("❤️짜란! **랜덤 퀴즈** 3문항을 풀어보세요!😘")
+    st.markdown("❤️짜란! **랜덤 종합 퀴즈**를 풀어보세요!😘")
 
-    if VOCAB.empty or len(VOCAB.dropna(subset=["표제어","뜻풀이"])) < 4:
-        st.info("퀴즈를 만들려면 `data/vocab.csv`에 최소 4개 이상의 항목이 필요합니다.")
+    # 처음 로드 시 data/ 모든 CSV 기반으로 혼합 퀴즈 생성
+    if "quiz_items" not in st.session_state or not st.session_state.quiz_items:
+        st.session_state.quiz_items = build_all_quiz_items(total=10)  # 총 문항 수 조절 가능
+        st.session_state.quiz_submitted = False
+        st.session_state.quiz_score = 0
+
+    if not st.session_state.quiz_items:
+        st.info("퀴즈를 만들 데이터가 부족합니다. data/ 폴더의 CSV들을 확인해 주세요.")
     else:
-        # 초기 세션 상태
-        if "quiz_items" not in st.session_state:
-            st.session_state.quiz_items = build_quiz_items(VOCAB, n=3)
-            st.session_state.quiz_submitted = False
-            st.session_state.quiz_score = 0
-
-        # 문항 렌더링
         answers = {}
         for i, item in enumerate(st.session_state.quiz_items):
             st.markdown(
@@ -299,15 +402,11 @@ with tab_quiz:
                 unsafe_allow_html=True
             )
             key = f"quiz_q_{i}"
-            choice = st.radio(
-                "보기",
-                options=item["choices"],
-                index=None,
-                key=key,
-                label_visibility="collapsed"
-            )
+            choice = st.radio("보기", options=item["choices"], index=None, key=key, label_visibility="collapsed")
             answers[i] = choice
             st.divider()
+        # 제출/채점/해설 부분은 기존 코드 유지
+
 
         # ✅ 제출 버튼 (맨 아래)
         if st.button("✅ 제출", type="primary", use_container_width=True):
@@ -335,10 +434,11 @@ with tab_quiz:
 
         # 🔄 새 퀴즈 출제 버튼 (제출 아래)
         if st.button("🔄 새 퀴즈 출제", use_container_width=True):
-            st.session_state.quiz_items = build_quiz_items(VOCAB, n=3)
-            st.session_state.quiz_submitted = False
-            st.session_state.quiz_score = 0
-            st.rerun()
+           st.session_state.quiz_items = build_all_quiz_items(total=10)
+           st.session_state.quiz_submitted = False
+           st.session_state.quiz_score = 0
+           st.rerun()
+
                     
 # ─────────────────────────────────────────────────────────────
 # 사이드바: 상태/확장 안내
@@ -356,6 +456,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
