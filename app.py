@@ -462,7 +462,7 @@ with tab_quiz:
 
     # 처음 로드 시 data/ 모든 CSV 기반으로 혼합 퀴즈 생성
     if "quiz_items" not in st.session_state or not st.session_state.quiz_items:
-        st.session_state.quiz_items = build_all_quiz_items(total=10)  # 총 문항 수
+        st.session_state.quiz_items = build_all_quiz_items(total=10)
         st.session_state.quiz_submitted = False
         st.session_state.quiz_score = 0
 
@@ -528,7 +528,7 @@ with tab_quiz:
 
         # 새 퀴즈
         if new_quiz:
-            st.session_state.quiz_items = build_all_quiz_items(total=10)
+            st.session_state.quiz_items = build_all_quiz_items(total=10)  # 총 문항 수
             st.session_state.quiz_submitted = False
             st.session_state.quiz_score = 0
             st.rerun()
@@ -578,6 +578,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
