@@ -260,6 +260,11 @@ def _read_csv_expect(path: str, expected_cols: list[str]) -> pd.DataFrame:
     return df[expected_cols].fillna("").astype(str)
 
 # ==== 통합 어휘 퀴즈 ====
+QUIZ_COUNT = 10
+
+st.session_state.quiz_items = build_all_quiz_items(total=QUIZ_COUNT)
+# 또는 build_quiz_items(VOCAB, n=QUIZ_COUNT)
+
 def build_quiz_lexicon(df: pd.DataFrame, n: int) -> list[dict]:
     need = {"유형","어휘","뜻풀이"}
     if not need.issubset(df.columns) or df.empty: return []
@@ -552,5 +557,6 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
