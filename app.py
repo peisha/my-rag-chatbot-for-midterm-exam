@@ -220,46 +220,12 @@ with tab_ask:
                 st.error(f"오류가 발생했습니다: {e}")
 
 # ─────────────────────────────────────────────────────────────
-# 퀴즈 탭 (확장 버전: 3문항 랜덤 + 점수 + 다시 풀기) — 버튼 맨 아래
+# 퀴즈 탭 (확장 버전: 제출 → 결과 → 새 퀴즈 버튼 순서)
 # ─────────────────────────────────────────────────────────────
-def build_quiz_items(vocab_df: pd.DataFrame, n: int = 3):
-    """vocab.csv에서 랜덤 문항 n개 생성.
-       문항: '표제어의 뜻으로 알맞은 것은?'  / 보기: 뜻풀이 4개(정답 1 + 오답 3)
-    """
-    df = vocab_df.dropna(subset=["표제어", "뜻풀이"]).copy()
-    if len(df) < 4:
-        return []
-
-    import random
-    items = []
-    idxs = list(df.index)
-    random.shuffle(idxs)
-    pick = idxs[:max(1, min(n, len(df)))]
-
-    for i in pick:
-        row = df.loc[i]
-        correct = str(row["뜻풀이"]).strip()
-        pool = df[df["유형"] == row.get("유형", "")]["뜻풀이"].tolist()
-        if len(pool) < 4:
-            pool = df["뜻풀이"].tolist()
-        distractors = [x for x in pool if str(x).strip() != correct]
-        random.shuffle(distractors)
-        distractors = distractors[:3]
-        choices = [correct] + distractors
-        random.shuffle(choices)
-
-        items.append({
-            "question": f"‘{row['표제어']}’의 뜻으로 가장 알맞은 것은?",
-            "choices": choices,
-            "answer": correct,
-            "ex": str(row.get("예문", "")).strip(),
-            "meta": f"[{row.get('유형','어휘')}/{row.get('품사','-')}]"
-        })
-    return items
-
 with tab_quiz:
     st.markdown("❤️짜란! **랜덤 퀴즈** 3문항을 풀어보세요!😘")
-     if VOCAB.empty or len(VOCAB.dropna(subset=["표제어","뜻풀이"])) < 4:
+
+    if VOCAB.empty or len(VOCAB.dropna(subset=["표제어","뜻풀이"])) < 4:
         st.info("퀴즈를 만들려면 `data/vocab.csv`에 최소 4개 이상의 항목이 필요합니다.")
     else:
         # 초기 세션 상태
@@ -316,6 +282,7 @@ with tab_quiz:
             st.session_state.quiz_submitted = False
             st.session_state.quiz_score = 0
             st.experimental_rerun()
+
                     
 # ─────────────────────────────────────────────────────────────
 # 사이드바: 상태/확장 안내
@@ -333,6 +300,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
