@@ -195,6 +195,18 @@ def answer_poly(q: str) -> str:
 # ─────────────────────────────────────────────────────────────
 # 퀴즈 문항 생성기: vocab.csv에서 n문항 뽑기 (메타는 [유형]만)
 # ─────────────────────────────────────────────────────────────
+import re
+
+def clean_text(s: str) -> str:
+    """보기/질문 앞뒤의 특수문자나 숫자 제거"""
+    if not isinstance(s, str):
+        return ""
+    s = s.strip()
+    # '=', '-', '⑥', '①'~'⑩', 괄호, 숫자 등 제거
+    s = re.sub(r'^[=\-\d⑴-⑽⑴⑽\(\)\s·\.\,]+', '', s)
+    s = re.sub(r'[\s·\.\,]+$', '', s)
+    return s.strip()
+
 # ==== 공통: CSV 안전 로더 ====
 def _read_csv_expect(path: str, expected_cols: list[str]) -> pd.DataFrame:
     if not os.path.exists(path):
@@ -456,6 +468,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
