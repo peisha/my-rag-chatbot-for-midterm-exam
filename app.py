@@ -384,6 +384,12 @@ with tab_ask:
     user_q = st.text_input(
         "🐲 적절한 질문의 예시! 👉 교각살우의 뜻이 궁금해요, 늑막염의 표준 발음을 알려주세요, 자료에서 ~는 어디에 나오나요?"
     )
+    st.markdown(
+        "<p style='color:gray; font-size:18px; font-weight:600; text-align:center;'>"
+        "파이팅! 쌤은 여러분의 시험을 응원합니다😍🎇🎉"
+        "</p>",
+        unsafe_allow_html=True
+    )
 
     if user_q:
         kind = intent(user_q)
@@ -487,6 +493,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
