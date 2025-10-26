@@ -220,26 +220,25 @@ with tab_ask:
                 st.error(f"오류가 발생했습니다: {e}")
 
 # ─────────────────────────────────────────────────────────────
-# 퀴즈 탭 (확장 버전: 3문항 랜덤 + 점수 + 다시 풀기)
+# 퀴즈 탭 (확장 버전: 3문항 랜덤 + 점수 + 다시 풀기) — 버튼 맨 아래
 # ─────────────────────────────────────────────────────────────
 def build_quiz_items(vocab_df: pd.DataFrame, n: int = 3):
     """vocab.csv에서 랜덤 문항 n개 생성.
        문항: '표제어의 뜻으로 알맞은 것은?'  / 보기: 뜻풀이 4개(정답 1 + 오답 3)
     """
     df = vocab_df.dropna(subset=["표제어", "뜻풀이"]).copy()
-    # 보기 생성을 위해 최소 4개 이상의 항목이 필요
     if len(df) < 4:
         return []
 
+    import random
     items = []
     idxs = list(df.index)
     random.shuffle(idxs)
-    pick = idxs[:max(1, min(n, len(df)//1))]
+    pick = idxs[:max(1, min(n, len(df)))]
 
     for i in pick:
         row = df.loc[i]
         correct = str(row["뜻풀이"]).strip()
-        # 같은 '유형'에서 오답 뽑기 (없으면 전체에서)
         pool = df[df["유형"] == row.get("유형", "")]["뜻풀이"].tolist()
         if len(pool) < 4:
             pool = df["뜻풀이"].tolist()
@@ -263,13 +262,13 @@ with tab_quiz:
     if VOCAB.empty or len(VOCAB.dropna(subset=["표제어","뜻풀이"])) < 4:
         st.info("퀴즈를 만들려면 `data/vocab.csv`에 최소 4개 이상의 항목이 필요합니다.")
     else:
-        # 초기 세팅
+        # 초기 세션 상태
         if "quiz_items" not in st.session_state:
             st.session_state.quiz_items = build_quiz_items(VOCAB, n=3)
             st.session_state.quiz_submitted = False
             st.session_state.quiz_score = 0
 
-        # 새 퀴즈 출제 버튼 (상단)
+        # 상단: 새 퀴즈 출제
         if st.button("🔄 새 퀴즈 출제", use_container_width=True):
             st.session_state.quiz_items = build_quiz_items(VOCAB, n=3)
             st.session_state.quiz_submitted = False
@@ -278,7 +277,10 @@ with tab_quiz:
         # 문항 렌더링
         answers = {}
         for i, item in enumerate(st.session_state.quiz_items):
-            st.markdown(f"**Q{i+1}. {item['question']}**  \n<small>{item['meta']}</small>", unsafe_allow_html=True)
+            st.markdown(
+                f"**Q{i+1}. {item['question']}**  \n<small>{item['meta']}</small>",
+                unsafe_allow_html=True
+            )
             key = f"quiz_q_{i}"
             choice = st.radio(
                 "보기",
@@ -290,7 +292,7 @@ with tab_quiz:
             answers[i] = choice
             st.divider()
 
-        # ✅ 제출 버튼을 맨 아래로 이동
+        # 맨 아래: 제출 버튼 (단일)
         if st.button("✅ 제출", type="primary", use_container_width=True):
             score = 0
             results = []
@@ -313,31 +315,7 @@ with tab_quiz:
                     if item["ex"]:
                         st.write(f"- 예문: {item['ex']}")
                     st.write("---")
-
-        # 채점
-        if colB.button("✅ 제출"):
-            score = 0
-            results = []
-            for i, item in enumerate(st.session_state.quiz_items):
-                sel = answers.get(i)
-                ok = (sel == item["answer"])
-                score += int(ok)
-                results.append((ok, sel, item))
-            st.session_state.quiz_score = score
-            st.session_state.quiz_submitted = True
-
-            st.success(f"점수: **{score} / {len(st.session_state.quiz_items)}**")
-            with st.expander("정답 및 해설 보기"):
-                for i, (ok, sel, item) in enumerate(results, start=1):
-                    icon = "✅" if ok else "❌"
-                    sel_txt = sel if sel is not None else "(무응답)"
-                    st.markdown(f"**{icon} Q{i}. {item['question']}**")
-                    st.write(f"- 선택: {sel_txt}")
-                    st.write(f"- 정답: {item['answer']}")
-                    if item["ex"]:
-                        st.write(f"- 예문: {item['ex']}")
-                    st.write("---")
-
+                    
 # ─────────────────────────────────────────────────────────────
 # 사이드바: 상태/확장 안내
 # ─────────────────────────────────────────────────────────────
@@ -354,5 +332,6 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
