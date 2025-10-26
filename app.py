@@ -58,7 +58,7 @@ def load_poly_df():
     ...
 # ← 여기도 교체
 VOCAB = load_lexicon_df()
-RULES = load_rules_list()
+RULES = load_rules_list() or []
 POLY  = load_poly_df()
 
 # ─────────────────────────────────────────────────────────────
@@ -458,7 +458,7 @@ with tab_quiz:
 with st.sidebar:
     st.markdown("### 상태")
     st.write(f"- 어휘 사전 로드: {'✅' if not VOCAB.empty else '❌'}")
-    st.write(f"- 규정 카드 로드: {'✅' if len(RULES)>0 else '❌'}")
+    st.write(f"- 규정 카드 로드: {'✅' if RULES else '❌'}")
     st.write(f"- 다의어 카드 로드: {'✅' if not POLY.empty else '❌'}")
     st.write(f"- 업로드 자료 색인: {'✅' if retriever is not None else '❌'}")
     st.divider()
@@ -468,6 +468,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
