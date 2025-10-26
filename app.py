@@ -507,13 +507,13 @@ with tab_quiz:
                     st.write("---")
 
         # 🔄 새 퀴즈 출제 버튼 (제출 아래)
-        if st.button("🔄 새 퀴즈 출제", use_container_width=True):
+        if st.button("🔄 새 퀴즈 출제", key="quiz_new_btn", use_container_width=True):
            st.session_state.quiz_items = build_all_quiz_items(total=10)
            st.session_state.quiz_submitted = False
            st.session_state.quiz_score = 0
            st.rerun()
 
-if st.button("✅ 제출", type="primary", use_container_width=True):
+if st.button("✅ 제출", key="quiz_submit_btn", type="primary", use_container_width=True):
     score = 0
     wrong_items = []  # 오답 저장용 리스트
     results = []
@@ -567,49 +567,3 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
