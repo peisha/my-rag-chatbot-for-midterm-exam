@@ -1,6 +1,7 @@
-# app.py — KBS 한국어능력시험 RAG 튜터 (어휘/규정/다의어 + 파일기반 RAG)
+# app.py — KBS 한국어능력시험 RAG 튜터 (어휘/규정/다의어 + 파일기반 RAG + 퀴즈)
 import os
 import json
+import random
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
@@ -233,6 +234,7 @@ with st.sidebar:
     st.markdown("- 규정: `같이 띄어쓰기`, `값이 발음`, `피자 표기`")
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
