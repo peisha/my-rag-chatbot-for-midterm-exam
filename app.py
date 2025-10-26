@@ -482,37 +482,50 @@ with tab_quiz:
         # 제출/채점/해설 부분은 기존 코드 유지
 
 
-        # ✅ 제출 버튼 (맨 아래)
-        if st.button("✅ 제출", type="primary", use_container_width=True):
-            score = 0
-            results = []
-            for i, item in enumerate(st.session_state.quiz_items):
-                sel = answers.get(i)
-                ok = (sel == item["answer"])
-                score += int(ok)
-                results.append((ok, sel, item))
-            st.session_state.quiz_score = score
-            st.session_state.quiz_submitted = True
+        # ✅ 제출 버튼 (퀴즈 탭 안에 딱 1개만)
+if st.button("✅ 제출", key="quiz_submit_btn", type="primary", use_container_width=True):
+    score = 0
+    results = []
+    wrong_items = []  # 오답 저장용
 
-            st.success(f"점수: **{score} / {len(st.session_state.quiz_items)}**")
-            with st.expander("정답 및 해설 보기"):
-                for i, (ok, sel, item) in enumerate(results, start=1):
-                    icon = "✅" if ok else "❌"
-                    sel_txt = sel if sel is not None else "(무응답)"
-                    st.markdown(f"**{icon} Q{i}. {item['question']}**")
-                    st.write(f"- 선택: {sel_txt}")
-                    st.write(f"- 정답: {item['answer']}")
-                    if item["ex"]:
-                        st.write(f"- 예문: {item['ex']}")
-                    st.write("---")
+    for i, item in enumerate(st.session_state.quiz_items):
+        sel = answers.get(i)
+        ok = (sel == item["answer"])
+        score += int(ok)
+        results.append((ok, sel, item))
 
-        # 🔄 새 퀴즈 출제 버튼 (제출 아래)
-        if st.button("🔄 새 퀴즈 출제", key="quiz_new_btn", use_container_width=True):
-           st.session_state.quiz_items = build_all_quiz_items(total=10)
-           st.session_state.quiz_submitted = False
-           st.session_state.quiz_score = 0
-           st.rerun()
+        if not ok:  # ❌ 오답이면 오답노트에 저장
+            wrong_items.append({
+                "문항": item["question"],
+                "선택한 답": sel if sel is not None else "(무응답)",
+                "정답": item["answer"],
+                "예문": item.get("ex", "")
+            })
 
+    # 세션 업데이트
+    st.session_state.quiz_score = score
+    st.session_state.quiz_submitted = True
+    st.session_state["wrong_items"] = wrong_items
+
+    # 결과 표시
+    st.success(f"점수: **{score} / {len(st.session_state.quiz_items)}**")
+    with st.expander("정답 및 해설 보기"):
+        for i, (ok, sel, item) in enumerate(results, start=1):
+            icon = "✅" if ok else "❌"
+            sel_txt = sel if sel is not None else "(무응답)"
+            st.markdown(f"**{icon} Q{i}. {item['question']}**")
+            st.write(f"- 선택: {sel_txt}")
+            st.write(f"- 정답: {item['answer']}")
+            if item.get("ex"):
+                st.write(f"- 예문: {item['ex']}")
+            st.write("---")
+
+# 🔄 새 퀴즈 출제 버튼 (제출 아래)
+if st.button("🔄 새 퀴즈 출제", key="quiz_new_btn", use_container_width=True):
+    st.session_state.quiz_items = build_all_quiz_items(total=10)
+    st.session_state.quiz_submitted = False
+    st.session_state.quiz_score = 0
+    st.rerun()
 if st.button("✅ 제출", key="quiz_submit_btn", type="primary", use_container_width=True):
     score = 0
     wrong_items = []  # 오답 저장용 리스트
@@ -567,3 +580,4 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
