@@ -34,8 +34,8 @@ st.markdown("<br><br>", unsafe_allow_html=True)
 # 안내문 (두 줄로 줄바꿈 적용)
 st.markdown(
     "<p style='text-align:center; color:#6b7280; font-size:14px; margin:10px 0 24px;'>"
-    "규정 근거는 국립국어원의 『한글맞춤법·표준발음법·외래어·로마자 표기법』및 "
-    "『표준국어대사전』임을 알려드립니다."
+    "규정 근거는 국립국어원의 '한글맞춤법·표준발음법·외래어·로마자 표기법' 및 "
+    "'표준국어대사전'임을 알려드립니다."
     "</p>",
     unsafe_allow_html=True
 )
@@ -526,6 +526,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
