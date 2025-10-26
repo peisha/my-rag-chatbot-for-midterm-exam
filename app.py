@@ -258,7 +258,7 @@ def build_quiz_items(vocab_df: pd.DataFrame, n: int = 3):
     return items
 
 with tab_quiz:
-    st.markdown("❤️**짜란! 랜덤 어휘 퀴즈 3문항**을 풀어보세요!😘")
+    st.markdown("❤️짜란! **랜덤 퀴즈** 3문항을 풀어보세요!😘")
     if VOCAB.empty or len(VOCAB.dropna(subset=["표제어","뜻풀이"])) < 4:
         st.info("퀴즈를 만들려면 `data/vocab.csv`에 최소 4개 이상의 항목이 필요합니다.")
     else:
@@ -332,6 +332,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
