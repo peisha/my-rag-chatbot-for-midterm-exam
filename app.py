@@ -27,12 +27,11 @@ st.caption("❗본 자료의 규정 근거는 국립국어원에서 기술한 �
 # ─────────────────────────────────────────────────────────────
 @st.cache_data
 def load_vocab_df():
-    """data/vocab.csv (유형,표제어,품사,뜻풀이,예문,비고)"""
+    """data/vocab.csv (유형,표제어,뜻풀이,예문,비고)"""
     path = "data/vocab.csv"
     if not os.path.exists(path):
-        return pd.DataFrame(columns=["유형","표제어","품사","뜻풀이","예문","비고"])
+        return pd.DataFrame(columns=["유형","표제어","뜻풀이","예문","비고"])
     return pd.read_csv(path)
-
 @st.cache_data
 def load_rules_list():
     """data/rules.json (규정명,항목,설명,예시)"""
@@ -129,22 +128,22 @@ def intent(text: str) -> str:
     return "rag"
 
 def answer_vocab(q: str) -> str:
-    """vocab.csv에서 표제어 부분일치 1건 찾아 설명"""
     if VOCAB.empty:
         return "사전 데이터(vocab.csv)가 아직 없습니다. 먼저 data/vocab.csv를 채워 주세요."
     hit = VOCAB[VOCAB["표제어"].apply(lambda w: isinstance(w, str) and w in q)]
     if len(hit):
         row = hit.iloc[0]
         lines = [
-            f"〔{row.get('유형','어휘')}〕 {row.get('표제어','-')} ({row.get('품사','-')})",
+            f"〔{row.get('유형','어휘')}〕 {row.get('표제어','-')}",
             f"뜻: {row.get('뜻풀이','-')}",
-            f"예문: {row.get('예문','-')}",
         ]
+        ex = row.get("예문","")
+        if isinstance(ex, str) and ex.strip():
+            lines.append(f"예문: {ex}")
         extra = row.get("비고","")
         if isinstance(extra, str) and extra.strip():
             lines.append(f"비고: {extra}")
         return "\n".join(lines)
-    # 못 찾으면 파일 RAG로 보조
     back = run_rag(f"어휘 의미: {q}")
     return "사전에 직접 일치하는 표제어가 없어요.\n\n" + back
 
@@ -300,9 +299,3 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
-
-
-
-
-
-
