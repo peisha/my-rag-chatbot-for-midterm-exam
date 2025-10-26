@@ -70,7 +70,9 @@ def load_lexicon_df():
 
 @st.cache_data
 def load_rules_list():
-    ...
+    # TODO: 규정 데이터 로딩 함수 구현 예정
+    return []
+
 @st.cache_data
 def load_poly_df():
     """data/polysemy.csv (표제어,의미번호,뜻,예문) → 항상 DataFrame 반환"""
@@ -524,6 +526,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
