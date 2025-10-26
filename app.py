@@ -79,7 +79,7 @@ POLY  = load_poly_df()
 # 파일 업로드 → 텍스트 추출 → 벡터DB 구성 (업로드시만)
 # ─────────────────────────────────────────────────────────────
 st.markdown(
-    "<h5 style='margin-bottom: 0.3em;'>흠!🧐 별도로 학습시키고 싶은 자료가 있으신가요? 이곳에 업로드하세요! 👇📂</h5>",
+    "<h5 style='margin-bottom: 0.3em;'>🧐 흠.. 별도로 학습시키고 싶은 자료가 있으신가요? 이곳에 업로드하세요! 👇📂</h5>",
     unsafe_allow_html=True
 )
 uploaded = st.file_uploader("txt 또는 pdf 파일을 업로드하세요", type=["txt", "pdf"])
@@ -487,6 +487,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
