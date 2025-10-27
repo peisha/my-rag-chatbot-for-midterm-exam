@@ -425,52 +425,55 @@ with tab_intro_ask:
 
     with st.expander("🍹 응시 안내"):
         st.markdown("""
-        - 대한민국 국적자 누구나 응시 가능  
-        - 외국인은 외국인등록증/국내거소등록증/영주증 중 택1 필요  
-        - 전국 15개 권역(서울·부산·대구·광주·제주 등)에서 시행  
-        - KBS 한국어능력시험 홈페이지에서 **온라인 접수**  
-        - 응시료 **33,000원** (자격증 발급 수수료 **5,000원** 별도)
-        """)
-
-    with st.expander("🍘 시험 구성 및 영역"):
-        st.markdown("""
-    본 시험은 객관식 5지 선다형으로 구성되어 있으며, 총 **100문항**입니다.  
+    본 시험은 객관식 **5지 선다형**으로 구성되어 있으며, 총 **100문항**입니다.  
     아래는 시간대별 영역 구성표입니다.
     """)
 
-    import pandas as pd
-
-    # 영역 구성표 (시간대별 묶음)
-    data = {
-        "시간대": [
-            "10:00~10:25 (25분)",
-            "10:25~12:00 (95분)"
-        ],
-        "영역": [
-            "듣기·말하기",
-            "쓰기 · 창안 · 읽기 · 국어문화"
-        ],
-        "문항 수": [
-            "15문항",
-            "85문항 (쓰기 5 + 창안 10 + 읽기 30 + 국어문화 10 + 어휘·어법 30)"
-        ]
-    }
-
-    df = pd.DataFrame(data)
-
-    st.dataframe(df, use_container_width=True, hide_index=True)
-
     st.markdown("""
-    📘 **세부 구성 요약**
-    - 듣기·말하기: 15문항  
-    - 어휘: 15문항  
-    - 어법: 15문항  
-    - 쓰기: 5문항  
-    - 창안: 10문항  
-    - 읽기: 30문항  
-    - 국어문화: 10문항  
-    """)
+    <style>
+    .exam-table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 10px;
+        font-size: 16px;
+        text-align: center;
+    }
+    .exam-table th {
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-bottom: 2px solid #ddd;
+    }
+    .exam-table td {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+    .pastel-blue {
+        background-color: #e8f0fe;  /* 듣기·말하기 - 파스텔 블루 */
+    }
+    .pastel-pink {
+        background-color: #fff0f5;  /* 쓰기·창안·읽기 등 - 파스텔 핑크 */
+    }
+    </style>
 
+    <table class="exam-table">
+        <tr>
+            <th>시간대</th>
+            <th>영역</th>
+            <th>문항 수</th>
+        </tr>
+        <tr class="pastel-blue">
+            <td>10:00~10:25 (25분)</td>
+            <td>듣기·말하기</td>
+            <td>15문항</td>
+        </tr>
+        <tr class="pastel-pink">
+            <td>10:25~12:00 (95분)</td>
+            <td>쓰기 · 창안 · 읽기 · 국어문화 · 어휘 · 어법</td>
+            <td>85문항 (쓰기 5 + 창안 10 + 읽기 30 + 국어문화 10 + 어휘·어법 30)</td>
+        </tr>
+    </table>
+    """, unsafe_allow_html=True)
+    
     with st.expander("🍡 영역별 출제 경향"):
         st.subheader("듣기·말하기")
         st.markdown("- 그림·장면·라디오 듣고 내용 파악하기\n- 고전/우화/시 청취 후 추론\n- 대화·발표 듣고 말하기 방식 추론")
@@ -832,6 +835,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
