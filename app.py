@@ -413,7 +413,7 @@ with tab_intro_ask:
     # ── (A) 시험 소개 섹션 ──
     st.markdown("<h2>📘 KBS 한국어능력시험 소개</h2>", unsafe_allow_html=True)
 
-    with st.expander("🌠 왜 필요한가요?", expanded=True):
+    with st.expander("🌾 한능시! 왜 필요한가요?", expanded=True):
         st.markdown("""
         **입학 / 취업 / 승진에 유리합니다.**
         - 특목고 진학 및 대학 입학  
@@ -423,7 +423,7 @@ with tab_intro_ask:
         - 경찰청 등 승진에서 ‘결정적 가산점’ 확보  
         """)
 
-    with st.expander("🌠 응시 안내"):
+    with st.expander("🍹 응시 안내"):
         st.markdown("""
         - 대한민국 국적자 누구나 응시 가능  
         - 외국인은 외국인등록증/국내거소등록증/영주증 중 택1 필요  
@@ -432,9 +432,9 @@ with tab_intro_ask:
         - 응시료 **33,000원** (자격증 발급 수수료 **5,000원** 별도)
         """)
 
-    with st.expander("🌠 시험 구성 및 영역"):
+    with st.expander("🍘 시험 구성 및 영역"):
         st.markdown("""
-        **객관식 5지 선다형 · 총 100문항**
+        본 시험은 객관식 5지 선다형으로 구성되어 있으며, 총 100문항입니다.
 
         | 영역 | 문항 수 | 시간 |
         |:--|:--:|:--:|
@@ -447,7 +447,7 @@ with tab_intro_ask:
         | 국어 문화 | 10 |  |
         """)
 
-    with st.expander("🌠 영역별 출제 경향"):
+    with st.expander("🍡 영역별 출제 경향"):
         st.subheader("듣기·말하기")
         st.markdown("- 그림·장면·라디오 듣고 내용 파악하기\n- 고전/우화/시 청취 후 추론\n- 대화·발표 듣고 말하기 방식 추론")
         st.subheader("어휘")
@@ -808,6 +808,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
