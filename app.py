@@ -402,9 +402,11 @@ def build_all_quiz_items(total: int = 10) -> list[dict]:
     return items[:total]
 
 # ─────────────────────────────────────────────────────────────
-# 탭 UI: 질문하기 | 퀴즈
+# 탭 UI: 질문하기 | 퀴즈 | 오답노트 | 학습하기
 # ─────────────────────────────────────────────────────────────
-tab_ask, tab_quiz, tab_wrong = st.tabs(["🧐 질문하기", "🤗 퀴즈 풀기", "📘 오답노트"])
+tab_ask, tab_quiz, tab_wrong, tab_learn = st.tabs(
+    ["🧐 질문하기", "🤗 퀴즈 풀기", "📘 오답노트", "📚 학습하기"]
+)
 
 with tab_ask:
     # 라벨 부분을 HTML로 직접 출력 (엔터 포함)
@@ -532,7 +534,180 @@ with tab_quiz:
             st.session_state.quiz_submitted = False
             st.session_state.quiz_score = 0
             st.rerun()
-            
+
+# ========== 학습 탭 헬퍼 ==========
+def init_study():
+    """학습 진행 상태 초기화"""
+    if "study" not in st.session_state:
+        st.session_state.study = {
+            "today_goal": {"lex": 10, "rule": 5, "poly": 3},
+            "seen_ids": [],
+            "bookmarks": [],
+            "leitner": {"1": [], "2": [], "3": []},
+            "progress": {
+                "date": pd.Timestamp.today().date().isoformat(),
+                "lex": 0, "rule": 0, "poly": 0
+            }
+        }
+
+@st.cache_data
+def rules_df():
+    """rules.json → DataFrame"""
+    return pd.DataFrame(RULES) if RULES else pd.DataFrame(columns=["규정명","항목","설명","예시"])
+
+def show_rule_card(idx: int) -> int:
+    """규정 학습용 카드 뷰 + 이전/다음/북마크"""
+    df = rules_df()
+    if df.empty:
+        st.info("rules.json이 비어 있습니다.")
+        return 0
+    idx = max(0, min(idx, len(df)-1))
+    r = df.iloc[idx]
+    st.markdown(f"### 〔{r.get('규정명','규정')}〕 {r.get('항목','')}")
+    st.write(r.get("설명",""))
+    ex = r.get("예시","")
+    if isinstance(ex, str) and ex.strip():
+        st.code(ex)
+    c1, c2, c3 = st.columns(3)
+    if c1.button("⬅️ 이전", key=f"rule_prev_{idx}"):
+        idx -= 1
+    if c2.button("⭐ 중요 표시", key=f"rule_star_{idx}"):
+        st.session_state.study["bookmarks"].append(("rule", idx))
+        st.toast("중요 항목으로 저장했어요!", icon="⭐")
+    if c3.button("다음 ➡️", key=f"rule_next_{idx}"):
+        idx += 1
+    return idx
+
+def flash_lex(df: pd.DataFrame):
+    """어휘 플래시카드: 앞(어휘) / 뒤(뜻풀이·예문)"""
+    if df.empty:
+        st.info("어휘 CSV가 비어 있습니다.")
+        return
+    if "lex_idx" not in st.session_state:
+        st.session_state.lex_idx = 0
+    i = st.session_state.lex_idx % len(df)
+    row = df.iloc[i]
+    front = f"**〔{row.get('유형','어휘')}〕 {row.get('어휘','(어휘)')}**"
+    ex = row.get("예문","")
+    back_lines = [f"뜻: {row.get('뜻풀이','-')}"]
+    if isinstance(ex, str) and ex.strip():
+        back_lines.append(f"\n예문: {ex}")
+    back = "\n".join(back_lines)
+
+    st.markdown(front)
+    if st.toggle("정답 보기", key=f"lex_show_{i}"):
+        st.write(back)
+
+    c1, c2, c3 = st.columns(3)
+    if c1.button("틀림", key=f"lex_wrong_{i}"):
+        st.session_state.study["leitner"]["1"].append(("lex", i))
+        st.session_state.lex_idx += 1
+    if c2.button("정답", key=f"lex_right_{i}"):
+        st.session_state.study["progress"]["lex"] += 1
+        st.session_state.study["leitner"]["2"].append(("lex", i))
+        st.session_state.lex_idx += 1
+    if c3.button("건너뛰기", key=f"lex_skip_{i}"):
+        st.session_state.lex_idx += 1
+
+# ─────────────────────────────────────────────────────────────
+# 📚 학습하기 탭
+# ─────────────────────────────────────────────────────────────
+with tab_learn:
+    init_study()
+    S = st.session_state.study
+    G = S["today_goal"]; P = S["progress"]
+
+    # 상단 대시보드
+    st.markdown("### 오늘의 학습 현황")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("어휘 진행", f"{P['lex']}/{G['lex']}")
+    col2.metric("규정 진행", f"{P['rule']}/{G['rule']}")
+    col3.metric("다의어 진행", f"{P['poly']}/{G['poly']}")
+    total_goal = max(1, G['lex']+G['rule']+G['poly'])
+    total_now  = P['lex']+P['rule']+P['poly']
+    st.progress(min(1.0, total_now / total_goal))
+
+    # 규정 학습
+    with st.expander("📏 규정 학습", expanded=True):
+        if "rule_idx" not in st.session_state:
+            st.session_state.rule_idx = 0
+        st.session_state.rule_idx = show_rule_card(st.session_state.rule_idx)
+        if st.button("학습 완료(규정 1 증가)", key="rule_done"):
+            st.session_state.study["progress"]["rule"] += 1
+            st.toast("규정 1개 학습 완료!", icon="✅")
+
+    # 어휘 플래시카드
+    with st.expander("🃏 어휘 플래시카드", expanded=True):
+        flash_lex(VOCAB)
+
+    # 다의어 학습
+    with st.expander("🔀 다의어 학습"):
+        if POLY.empty:
+            st.info("polysemy.csv가 비어 있습니다.")
+        else:
+            word = st.selectbox(
+                "표제어 선택", sorted([w for w in POLY["표제어"].unique() if isinstance(w, str)]),
+                key="poly_select"
+            )
+            rows = POLY[POLY["표제어"] == word].sort_values("의미번호")
+            for _, r in rows.iterrows():
+                st.markdown(f"- **{r['의미번호']}**: {r['뜻']}")
+                ex = r.get("예문","")
+                if isinstance(ex, str) and ex.strip():
+                    st.code(ex)
+            if st.button("학습 완료(다의어 1 증가)", key="poly_done"):
+                st.session_state.study["progress"]["poly"] += 1
+                st.toast("다의어 1개 학습 완료!", icon="✅")
+
+    # 미니 테스트 (방금 학습한 맥락으로 5문항)
+    with st.expander("🧪 미니 테스트(5문항)"):
+        mini_items = build_all_quiz_items(total=5)  # 기존 빌더 재사용
+        mini_answers = {}
+        for i, q in enumerate(mini_items):
+            st.markdown(f"**Q{i+1}. {q['question']}**  \n<small>{q['meta']}</small>", unsafe_allow_html=True)
+            mini_answers[i] = st.radio("보기", q["choices"], index=None, key=f"mini_{i}", label_visibility="collapsed")
+            st.divider()
+        if st.button("채점", key="mini_grade_btn"):
+            score, wrong = 0, []
+            for i, q in enumerate(mini_items):
+                sel = mini_answers[i]
+                ok = sel == q["answer"]; score += int(ok)
+                if not ok:
+                    wrong.append({
+                        "문항": q["question"],
+                        "선택한 답": sel if sel is not None else "(무응답)",
+                        "정답": q["answer"],
+                        "예문": q.get("ex","")
+                    })
+            st.success(f"점수: {score} / {len(mini_items)}")
+            # 오답노트에 누적
+            st.session_state["wrong_items"] = st.session_state.get("wrong_items", []) + wrong
+
+    # 오답 복습 (간단 Leitner)
+    with st.expander("🔁 오답 복습(Leitner)"):
+        boxes = st.session_state.study["leitner"]
+        st.write({f"박스 {k}": len(v) for k, v in boxes.items()})
+        # 간단: 박스1 → 2 → 3 순
+        pool = boxes["1"] or boxes["2"] or boxes["3"]
+        if not pool:
+            st.info("복습할 카드가 없어요. 퀴즈/학습에서 틀린 항목이 생기면 여기에 쌓입니다.")
+        else:
+            src, i = pool[0]  # ("lex", index) 형태
+            if src == "lex" and not VOCAB.empty:
+                r = VOCAB.iloc[i]
+                st.markdown(f"**〔{r.get('유형','어휘')}〕 {r.get('어휘','')}**")
+                if st.button("정답 (상위 박스로 이동)", key=f"leit_up_{i}"):
+                    if pool is boxes["1"]:
+                        boxes["2"].append(pool.pop(0))
+                    elif pool is boxes["2"]:
+                        boxes["3"].append(pool.pop(0))
+                    else:
+                        pool.pop(0)
+                if st.button("오답 (1단계로)", key=f"leit_reset_{i}"):
+                    if pool:
+                        pair = pool.pop(0)
+                    boxes["1"].append(("lex", i))
+
 # ─────────────────────────────────────────────────────────────
 # 오답노트 탭
 # ─────────────────────────────────────────────────────────────
@@ -578,6 +753,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
