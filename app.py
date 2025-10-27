@@ -517,7 +517,6 @@ with tab_intro_ask:
 
     # ── (B) 시험 구성 섹션 ──
     with st.expander("🍹 시험 구성 및 영역", expanded=True):
-        # 설명 문장
         st.markdown(
             """
 본 시험은 객관식 **5지 선다형**으로 구성되어 있으며, 총 **100문항**입니다.  
@@ -525,7 +524,6 @@ with tab_intro_ask:
             """
         )
 
-        # 표 (색상 제거 + 줄바꿈 반영)
         st.markdown(
             """
 <style>
@@ -569,34 +567,36 @@ with tab_intro_ask:
         )
 
     # ── (C) 영역별 출제 경향 ──
-    with st.expander("🍡 영역별 출제 경향"):
+    with st.expander("🍡 영역별 출제 경향", expanded=True):
         st.markdown(
             """
 <div style="font-size:15px; line-height:1.8;">
+
   <p><b>🍫 듣기·말하기</b></p>
-  <ul style="margin-left:12px;">
-     ✔️ 그림·장면·라디오 듣고 핵심 내용 파악
-     ✔️ 고전/우화/시 청취 후 의미 및 감정 추론
-     ✔️ 대화·발표 듣고 말하기 방식·화자의 태도 파악
+  <ul style="margin-left:12px; list-style:none; padding-left:0;">
+    <li>✔️ 그림·장면·라디오 듣고 핵심 내용 파악</li>
+    <li>✔️ 고전/우화/시 청취 후 의미 및 감정 추론</li>
+    <li>✔️ 대화·발표 듣고 말하기 방식·화자의 태도 파악</li>
   </ul>
 
   <p><b>🍮 어휘</b></p>
-  <ul style="margin-left:12px;">
-     ✔️ 고유어·한자어 뜻/표기 구분
-     ✔️ 어휘 관계(유의/반의/상하)·속담·관용구
-     ✔️ 외래어·한자어의 올바른 우리말 쓰임
+  <ul style="margin-left:12px; list-style:none; padding-left:0;">
+    <li>✔️ 고유어·한자어 뜻/표기 구분</li>
+    <li>✔️ 어휘 관계(유의/반의/상하)·속담·관용구</li>
+    <li>✔️ 외래어·한자어의 올바른 우리말 쓰임</li>
   </ul>
 
   <p><b>🍰 어법</b></p>
-  <ul style="margin-left:12px;">
-     ✔️ 맞춤법/표준어/발음/표기법 구분
-     ✔️ 문장 호응 및 잘못된 표현 진단·수정
+  <ul style="margin-left:12px; list-style:none; padding-left:0;">
+    <li>✔️ 맞춤법/표준어/발음/표기법 구분</li>
+    <li>✔️ 문장 호응 및 잘못된 표현 진단·수정</li>
   </ul>
 
   <p><b>🍯 쓰기</b></p>
-  <ul style="margin-left:12px;">
-     ✔️ 계획·개요 수정, 자료 활용, 글 고쳐쓰기
+  <ul style="margin-left:12px; list-style:none; padding-left:0;">
+    <li>✔️ 계획·개요 수정, 자료 활용, 글 고쳐쓰기</li>
   </ul>
+
 </div>
             """,
             unsafe_allow_html=True,
@@ -938,6 +938,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
