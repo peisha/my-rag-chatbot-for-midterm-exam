@@ -89,7 +89,7 @@ def load_poly_df():
         if c not in df.columns:
             df[c] = ""
     return df[cols].fillna("").astype(str)
-    ...
+
 # CSV 파일 로드
 VOCAB = load_lexicon_df()
 RULES = load_rules_list() or []
@@ -815,25 +815,6 @@ with tab_learn:
     with st.expander("🍇 어휘 플래시카드 🍓", expanded=True):
         flash_lex(VOCAB)
 
-    # 다의어 학습
-    with st.expander("🍊 다의어 학습 🍒"):
-        if POLY.empty:
-            st.info("polysemy.csv가 비어 있습니다.")
-        else:
-            word = st.selectbox(
-                "표제어 선택", sorted([w for w in POLY["표제어"].unique() if isinstance(w, str)]),
-                key="poly_select"
-            )
-            rows = POLY[POLY["표제어"] == word].sort_values("의미번호")
-            for _, r in rows.iterrows():
-                st.markdown(f"- **{r['의미번호']}**: {r['뜻']}")
-                ex = r.get("예문","")
-                if isinstance(ex, str) and ex.strip():
-                    st.code(ex)
-            if st.button("학습 완료(다의어 1 증가)", key="poly_done"):
-                st.session_state.study["progress"]["poly"] += 1
-                st.toast("다의어 1개 학습 완료!", icon="✅")
-
     # 미니 테스트 (방금 학습한 맥락으로 5문항)
     with st.expander("🍋 미니 테스트 (방금 학습한 맥락으로 5문항!) 🫐"):
         mini_items = build_all_quiz_items(total=5)  # 기존 빌더 재사용
@@ -859,7 +840,7 @@ with tab_learn:
             st.session_state["wrong_items"] = st.session_state.get("wrong_items", []) + wrong
 
     # 오답 복습 (간단 Leitner)
-    with st.expander("🔁 오답 복습"):
+    with st.expander("🍊 오답 복습 🍒"):
         boxes = st.session_state.study["leitner"]
         st.write({f"박스 {k}": len(v) for k, v in boxes.items()})
         # 간단: 박스1 → 2 → 3 순
@@ -928,7 +909,3 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
-
-
-
-
