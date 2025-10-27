@@ -519,102 +519,53 @@ with tab_intro_ask:
         # 설명 문장
         st.markdown(
             """
-본 시험은 객관식 **5지 선다형**으로 구성되어 있으며, 총 **100문항**입니다.  
-아래는 시간대별 영역 구성표입니다.
+        본 시험은 객관식 **5지 선다형**으로 구성되어 있으며, 총 **100문항**입니다.  
+        아래는 시간대별 영역 구성표입니다.
             """
         )
 
         # 표 (색상 제거 + 줄바꿈 반영)
         st.markdown(
             """
-<style>
-.exam-table {
-  border-collapse: collapse;
-  width: 100%;
-  margin-top: 10px;
-  font-size: 16px;
-  text-align: center;
-}
-.exam-table th {
-  background-color: #f8f9fa;
-  padding: 10px;
-  border-bottom: 2px solid #ddd;
-}
-.exam-table td {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-}
-</style>
+        <style>
+        .exam-table {
+          border-collapse: collapse;
+          width: 100%;
+          margin-top: 10px;
+          font-size: 16px;
+          text-align: center;
+        }
+        .exam-table th {
+          background-color: #f8f9fa;
+          padding: 10px;
+          border-bottom: 2px solid #ddd;
+        }
+        .exam-table td {
+          padding: 10px;
+          border-bottom: 1px solid #eee;
+        }
+        </style>
 
-<table class="exam-table">
-  <tr>
-    <th>시간대</th>
-    <th>영역</th>
-    <th>문항 수</th>
-  </tr>
-  <tr>
-    <td>10:00~10:25<br>(25분)</td>
-    <td>듣기·말하기</td>
-    <td>15문항</td>
-  </tr>
-  <tr>
-    <td>10:25~12:00<br>(95분)</td>
-    <td>쓰기 · 창안 · 읽기 · 국어문화<br>· 어휘 · 어법</td>
-    <td>85문항<br>(쓰기 5 + 창안 10 + 읽기 30 + 국어문화 10 + 어휘·어법 30)</td>
-  </tr>
-</table>
+        <table class="exam-table">
+          <tr>
+            <th>시간대</th>
+            <th>영역</th>
+            <th>문항 수</th>
+          </tr>
+          <tr>
+            <td>10:00~10:25<br>(25분)</td>
+            <td>듣기·말하기</td>
+            <td>15문항</td>
+          </tr>
+          <tr>
+            <td>10:25~12:00<br>(95분)</td>
+            <td>쓰기 · 창안 · 읽기 · 국어문화<br>· 어휘 · 어법</td>
+            <td>85문항<br>(쓰기 5 + 창안 10 + 읽기 30 + 국어문화 10 + 어휘·어법 30)</td>
+          </tr>
+        </table>
             """,
             unsafe_allow_html=True,
         )
-
-    with st.expander("🍡 영역별 출제 경향"):
-    st.markdown(
-        """
-        <div style='font-size:15px; line-height:1.8;'>
-        <p>한국어능력시험은 듣기·말하기, 어휘, 어법, 쓰기 등 다양한 언어 기능을 종합적으로 평가합니다.  
-        각 영역은 실제 의사소통 상황에 필요한 언어 능력을 중심으로 구성되어 있으며,  
-        아래는 세부적인 출제 경향과 주요 학습 포인트입니다.</p>
-
-        <br>
-
-        <p><b>🍫 듣기·말하기</b></p>
-        <ul style='margin-left:10px;'>
-          <li>그림·장면·라디오 방송을 듣고 핵심 내용을 파악하는 문제</li>
-          <li>고전, 우화, 시 등의 문학적 청취 자료를 통해 의미와 감정을 추론하는 문제</li>
-          <li>대화, 발표, 인터뷰 등을 듣고 말하기 방식·화자의 태도를 파악하는 문제</li>
-        </ul>
-
-        <p><b>🍮 어휘</b></p>
-        <ul style='margin-left:10px;'>
-          <li>고유어·한자어의 정확한 뜻과 표기 구분</li>
-          <li>어휘 관계 파악(유의어, 반의어, 상하 관계 등), 속담·관용구의 의미 해석</li>
-          <li>외래어·한자어를 우리말로 순화하거나 바르게 사용하는 능력 평가</li>
-        </ul>
-
-        <p><b>🍰 어법</b></p>
-        <ul style='margin-left:10px;'>
-          <li>맞춤법, 표준어, 발음, 표기법 등 문법적 정확성을 점검</li>
-          <li>문장의 호응 관계나 잘못된 표현을 찾아 고치는 문제</li>
-          <li>국어 규범과 실제 사용의 차이를 이해하고 바르게 적용하는 능력</li>
-        </ul>
-
-        <p><b>🍯 쓰기</b></p>
-        <ul style='margin-left:10px;'>
-          <li>글의 계획, 개요, 논리 구조를 수정·보완하는 문제</li>
-          <li>자료나 도표를 활용해 글의 내용을 구성하고 요약·정리하는 문제</li>
-          <li>제시문을 분석하여 자연스럽고 정확한 문장으로 고쳐 쓰는 문제</li>
-        </ul>
-
-        <br>
-
-        <p style='font-size:14px; color:#666;'>💡 <b>학습 팁:</b> 각 영역은 서로 긴밀히 연결되어 있습니다.  
-        예를 들어, 어법을 정확히 익히면 쓰기와 말하기 영역에서도 자연스러운 문장 표현이 가능합니다.  
-        실제 시험에서는 단순 암기보다 ‘의미 이해’와 ‘맥락 적용력’을 중심으로 학습하는 것이 중요합니다.</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
 
     # ── (B) 질문하기 섹션 ──
     st.markdown(
@@ -952,6 +903,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
