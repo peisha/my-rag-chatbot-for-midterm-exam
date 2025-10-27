@@ -425,51 +425,51 @@ with tab_intro_ask:
 
     with st.expander("🍹 응시 안내"):
         st.markdown("""
-    본 시험은 객관식 **5지 선다형**으로 구성되어 있으며, 총 **100문항**입니다.  
-    아래는 시간대별 영역 구성표입니다.
-    """)
+        본 시험은 객관식 **5지 선다형**으로 구성되어 있으며, 총 **100문항**입니다.  
+        아래는 시간대별 영역 구성표입니다.
+        """)
 
-    st.markdown("""
-    <style>
-    .exam-table {
-        border-collapse: collapse;
-        width: 100%;
-        margin-top: 10px;
-        font-size: 16px;
-        text-align: center;
-    }
-    .exam-table th {
-        background-color: #f8f9fa;
-        padding: 10px;
-        border-bottom: 2px solid #ddd;
-    }
-    .exam-table td {
-        padding: 10px;
-        border-bottom: 1px solid #eee;
-    }
-    .pastel-blue {
-        background-color: #e8f0fe;  /* 듣기·말하기 - 파스텔 블루 */
-    }
-    .pastel-pink {
-        background-color: #fff0f5;  /* 쓰기·창안·읽기 등 - 파스텔 핑크 */
-    }
-    </style>
+        st.markdown("""
+        style>
+        .exam-table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 10px;
+            font-size: 16px;
+            text-align: center;
+        }
+        .exam-table th {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-bottom: 2px solid #ddd;
+        }
+        .exam-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .pastel-blue {
+            background-color: #e8f0fe;  /* 듣기·말하기 - 파스텔 블루 */
+        }
+        .pastel-pink {
+            background-color: #fff0f5;  /* 쓰기·창안·읽기 등 - 파스텔 핑크 */
+        }
+        </style>
 
-    <table class="exam-table">
-        <tr>
-            <th>시간대</th>
-            <th>영역</th>
-            <th>문항 수</th>
+        <table class="exam-table">
+            <tr>
+                <th>시간대</th>
+                <th>영역</th>
+                <th>문항 수</th>
         </tr>
         <tr class="pastel-blue">
-            <td>10:00~10:25 (25분)</td>
-            <td>듣기·말하기</td>
-            <td>15문항</td>
+                <td>10:00~10:25 (25분)</td>
+                <td>듣기·말하기</td>
+                <td>15문항</td>
         </tr>
         <tr class="pastel-pink">
-            <td>10:25~12:00 (95분)</td>
-            <td>쓰기 · 창안 · 읽기 · 국어문화 · 어휘 · 어법</td>
-            <td>85문항 (쓰기 5 + 창안 10 + 읽기 30 + 국어문화 10 + 어휘·어법 30)</td>
+                <td>10:25~12:00 (95분)</td>
+                <td>쓰기 · 창안 · 읽기 · 국어문화 · 어휘 · 어법</td>
+                <td>85문항 (쓰기 5 + 창안 10 + 읽기 30 + 국어문화 10 + 어휘·어법 30)</td>
         </tr>
     </table>
     """, unsafe_allow_html=True)
@@ -835,6 +835,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
