@@ -90,51 +90,50 @@ def load_poly_df():
             df[c] = ""
     return df[cols].fillna("").astype(str)
     ...
-# ← 여기도 교체
+# CSV 파일 로드
 VOCAB = load_lexicon_df()
 RULES = load_rules_list() or []
-POLY  = load_poly_df()
+POLY = load_poly_df()
 
-# =========================
+# ==========================
 # 1) 규정 JSON 로드 & 문서화
-# =========================
+# ==========================
 import json, os, io
 from typing import List
 from langchain.schema import Document
 from langchain_community.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings  # 또는 OpenAIEmbeddings
 
-RULES_JSON_PATH = "rules.json"  # ← 업로드 파일명을 이 이름으로 저장해 사용
+RULES_JSON_PATH = "rules.json"  # 업로드 파일명 동일하게 사용
 
 @st.cache_data(show_spinner=False)
-def load_rule_docs(path: str = RULES_JSON_PATH) -> List[Document]:
+def load_rule_docs(path: str = RULES_JSON_PATH):
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
-
     docs = []
     for i, row in enumerate(data, 1):
         j = row.get
         장, 절, 항, 제목 = j("장",""), j("절",""), j("항",""), j("제목","")
         설명 = j("설명","")
-        # 예시 필드는 파일마다 있을 수도/없을 수도 있으니 안전하게 get
         ok   = ", ".join(j("예시_옳음",  []))
         bad  = ", ".join(j("예시_틀림", []))
         excp = ", ".join(j("예시_예외",  []))
-
-        body_lines = [설명]
-        if ok:   body_lines.append(f"[예시_옳음] {ok}")
-        if bad:  body_lines.append(f"[예시_틀림] {bad}")
-        if excp: body_lines.append(f"[예시_예외] {excp}")
-
-        text = f"{장} · {절} · {항}\n{제목}\n\n" + "\n".join(body_lines)
-
-        docs.append(
-            Document(
-                page_content=text,
-                metadata={"장": 장, "절": 절, "항": 항, "제목": 제목, "idx": i}
-            )
-        )
+        body = [설명]
+        if ok: body.append(f"[예시_옳음] {ok}")
+        if bad: body.append(f"[예시_틀림] {bad}")
+        if excp: body.append(f"[예시_예외] {excp}")
+        text = f"{장} · {절} · {항}\n{제목}\n\n" + "\n".join(body)
+        docs.append(Document(page_content=text, metadata={"장": 장, "절": 절, "항": 항, "제목": 제목}))
     return docs
+
+@st.cache_resource(show_spinner=False)
+def build_rule_retriever(docs):
+    embed = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    vs = FAISS.from_documents(docs, embed)
+    return vs.as_retriever(search_kwargs={"k": 4})
+
+rule_docs = load_rule_docs()
+retriever_rules = build_rule_retriever(rule_docs)
 
 # =========================
 # 2) 벡터 스토어 구축/로드
@@ -945,6 +944,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
