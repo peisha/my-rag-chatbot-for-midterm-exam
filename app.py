@@ -794,9 +794,9 @@ with tab_learn:
     S = st.session_state.study
     G = S["today_goal"]; P = S["progress"]
 
-    ...
+    
     with st.expander("🧋 규정 학습 🥂", expanded=True):
-        ...
+       
     with st.expander("🍈 규정 JSON 업로드 (선택사항입니다) 🌽"):
         up = st.file_uploader(
             "rules.json 업로드",
@@ -909,3 +909,4 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
