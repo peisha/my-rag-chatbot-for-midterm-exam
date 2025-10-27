@@ -827,9 +827,19 @@ with tab_learn:
     S = st.session_state.study
     G = S["today_goal"]; P = S["progress"]
 
-    
+    # ── 규정 학습 ──
     with st.expander("🧋 규정 학습 🥂", expanded=True):
-       
+        if "rule_idx" not in st.session_state:
+            st.session_state.rule_idx = 0
+
+        # 규정 카드 보여주기 (Ellipsis 출력 원인 제거: 절대 빈 블록/… 사용 X)
+        st.session_state.rule_idx = show_rule_card(st.session_state.rule_idx)
+
+        if st.button("학습 완료(규정 1 증가)", key="rule_done_learn"):
+            st.session_state.study["progress"]["rule"] += 1
+            st.toast("규정 1개 학습 완료!", icon="✅")
+
+    # ── 규정 JSON 업로드 (선택) ──
     with st.expander("🍈 규정 JSON 업로드 (선택사항입니다) 🌽"):
         up = st.file_uploader(
             "rules.json 업로드",
@@ -843,8 +853,8 @@ with tab_learn:
             st.cache_resource.clear()
             st.success("규정 데이터가 새로 적용되었어요. 잠시 후 자동으로 반영됩니다.")
             st.rerun()
-            
-    # 어휘 플래시카드
+
+    # ── 어휘 플래시카드 ──
     with st.expander("🍇 어휘 플래시카드 🍓", expanded=True):
         flash_lex(VOCAB)
 
@@ -942,5 +952,6 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
