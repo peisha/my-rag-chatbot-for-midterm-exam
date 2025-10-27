@@ -102,7 +102,8 @@ import json, os, io
 from typing import List
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS
-from langchain.embeddings import HuggingFaceEmbeddings  # 또는 OpenAIEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings  # 또는
+# from langchain_openai import OpenAIEmbeddings  # OpenAI 임베딩을 쓸 때만
 
 RULES_JSON_PATH = "rules.json"  # 업로드 파일명 동일하게 사용
 
@@ -932,5 +933,6 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
