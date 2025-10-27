@@ -414,58 +414,84 @@ with tab_intro_ask:
     st.markdown("<h2>📘 KBS 한국어능력시험 소개</h2>", unsafe_allow_html=True)
 
     with st.expander("🌾 한능시! 왜 필요한가요?", expanded=True):
-        st.markdown("""
-        **입학 / 취업 / 승진에 유리합니다.**
-        - 특목고 진학 및 대학 입학  
-        - KBS·EBS·경향신문 등 언론사 취업  
-        - 우리은행·GS홈쇼핑 등 민간기업 취업  
-        - 건강보험공단·한국전력 등 공공기관 취업  
-        - 경찰청 등 승진에서 ‘결정적 가산점’ 확보  
-        """)
+        st.markdown(
+            """
+**입학 / 취업 / 승진에 유리합니다.**
+- 특목고 진학 및 대학 입학  
+- KBS·EBS·경향신문 등 언론사 취업  
+- 우리은행·GS홈쇼핑 등 민간기업 취업  
+- 건강보험공단·한국전력 등 공공기관 취업  
+- 경찰청 등 승진에서 ‘결정적 가산점’ 확보  
+            """
+        )
 
     with st.expander("🧁 시험 구성 및 영역"):
-        st.markdown("""
-        본 시험은 객관식 **5지 선다형**으로 구성되어 있으며, 총 **100문항**입니다.  
-        아래는 시간대별 영역 구성표입니다.
-        """)
+        # 설명 문장
+        st.markdown(
+            """
+본 시험은 객관식 **5지 선다형**으로 구성되어 있으며, 총 **100문항**입니다.  
+아래는 시간대별 영역 구성표입니다.
+            """
+        )
 
-        st.markdown("""
-        <table class="exam-table">
-    <style>
-    .exam-table {
-        border-collapse: collapse;
-        width: 100%;
-        margin-top: 10px;
-        font-size: 16px;
-        text-align: center;
-    }
-    .exam-table th {
-        background-color: #f8f9fa;
-        padding: 10px;
-        border-bottom: 2px solid #ddd;
-    }
-    .exam-table td {
-        padding: 10px;
-        border-bottom: 1px solid #eee;
-    }
-    </style>
+        # 표 (색상 제거 + 줄바꿈 반영)
+        st.markdown(
+            """
+<style>
+.exam-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 10px;
+  font-size: 16px;
+  text-align: center;
+}
+.exam-table th {
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-bottom: 2px solid #ddd;
+}
+.exam-table td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+</style>
 
-    <tr>
-        <th>시간대</th>
-        <th>영역</th>
-        <th>문항 수</th>
-    </tr>
-    <tr>
-        <td>10:00~10:25<br>(25분)</td>
-        <td>듣기·말하기</td>
-        <td>15문항</td>
-    </tr>
-    <tr>
-        <td>10:25~12:00<br>(95분)</td>
-        <td>쓰기 · 창안 · 읽기 · 국어문화<br>· 어휘 · 어법</td>
-        <td>85문항<br>(쓰기 5 + 창안 10 + 읽기 30 + 국어문화 10 + 어휘·어법 30)</td>
-    </tr>
+<table class="exam-table">
+  <tr>
+    <th>시간대</th>
+    <th>영역</th>
+    <th>문항 수</th>
+  </tr>
+  <tr>
+    <td>10:00~10:25<br>(25분)</td>
+    <td>듣기·말하기</td>
+    <td>15문항</td>
+  </tr>
+  <tr>
+    <td>10:25~12:00<br>(95분)</td>
+    <td>쓰기 · 창안 · 읽기 · 국어문화<br>· 어휘 · 어법</td>
+    <td>85문항<br>(쓰기 5 + 창안 10 + 읽기 30 + 국어문화 10 + 어휘·어법 30)</td>
+  </tr>
 </table>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with st.expander("🍡 영역별 출제 경향"):
+        st.subheader("듣기·말하기")
+        st.markdown("- 그림·장면·라디오 듣고 내용 파악하기\n- 고전/우화/시 청취 후 추론\n- 대화·발표 듣고 말하기 방식 추론")
+
+        st.subheader("어휘")
+        st.markdown("- 고유어·한자어 뜻/표기\n- 어휘 관계 파악, 속담·관용구\n- 외래어·한자어 우리말로 다루기")
+
+        st.subheader("어법")
+        st.markdown("- 맞춤법/표준어/발음/표기법 구분\n- 문장 호응·잘못된 표현 파악")
+
+        st.subheader("쓰기")
+        st.markdown("- 계획·개요 수정, 자료 활용, 글 고쳐쓰기")
+
+    st.info("💡 TIP! **퀴즈 풀기 → 학습하기 → 오답노트** 순서로 학습을 진행해 보세요!")
+    st.divider()
 
 
     with st.expander("🍡 영역별 출제 경향"):
@@ -832,6 +858,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
