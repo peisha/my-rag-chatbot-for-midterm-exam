@@ -493,24 +493,6 @@ with tab_intro_ask:
     st.info("💡 TIP! **퀴즈 풀기 → 학습하기 → 오답노트** 순서로 학습을 진행해 보세요!")
     st.divider()
 
-
-    with st.expander("🍡 영역별 출제 경향"):
-        st.subheader("듣기·말하기")
-        st.markdown("- 그림·장면·라디오 듣고 내용 파악하기\n- 고전/우화/시 청취 후 추론\n- 대화·발표 듣고 말하기 방식 추론")
-
-        st.subheader("어휘")
-        st.markdown("- 고유어·한자어 뜻/표기\n- 어휘 관계 파악, 속담·관용구\n- 외래어·한자어 우리말로 다루기")
-
-        st.subheader("어법")
-        st.markdown("- 맞춤법/표준어/발음/표기법 구분\n- 문장 호응·잘못된 표현 파악")
-
-        st.subheader("쓰기")
-        st.markdown("- 계획·개요 수정, 자료 활용, 글 고쳐쓰기")
-
-    st.info("💡 TIP! **퀴즈 풀기 → 학습하기 → 오답노트** 순서로 학습을 진행해 보세요!")
-
-    st.divider()
-
     # ── (B) 질문하기 섹션 ──
     st.markdown(
         "<p style='font-size:18px; font-weight:600;'>🐲 저에게 질문을 해주세용 🌟!</p>"
@@ -858,6 +840,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
