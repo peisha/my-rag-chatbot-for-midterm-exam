@@ -798,33 +798,24 @@ with tab_learn:
     S = st.session_state.study
     G = S["today_goal"]; P = S["progress"]
 
-    # 상단 대시보드
-    st.markdown("### 오늘의 학습 현황")
-    col1, col2, col3 = st.columns(3)
-    col1.metric("어휘 진행", f"{P['lex']}/{G['lex']}")
-    col2.metric("규정 진행", f"{P['rule']}/{G['rule']}")
-    col3.metric("다의어 진행", f"{P['poly']}/{G['poly']}")
-    total_goal = max(1, G['lex']+G['rule']+G['poly'])
-    total_now  = P['lex']+P['rule']+P['poly']
-    st.progress(min(1.0, total_now / total_goal))
-
-    # 규정 학습
+    ...
     with st.expander("📏 규정 학습", expanded=True):
-        if "rule_idx" not in st.session_state:
-            st.session_state.rule_idx = 0
-        st.session_state.rule_idx = show_rule_card(st.session_state.rule_idx)
-        if st.button("학습 완료(규정 1 증가)", key="rule_done"):
-            st.session_state.study["progress"]["rule"] += 1
-            st.toast("규정 1개 학습 완료!", icon="✅")
-
+        ...
+    # ⬇⬇⬇ 여기부터 들여쓰기 맞춰서 넣기 ⬇⬇⬇
     with st.expander("📤 규정 JSON 업로드 (선택)"):
-    up = st.file_uploader("rules.json 업로드", type=["json"])
-    if up is not None:
-        with open("rules.json", "wb") as f:
-            f.write(up.read())
-        st.cache_data.clear()
-        st.cache_resource.clear()
-        st.success("규정 데이터가 새로 적용되었어요. 잠시 후 자동으로 반영됩니다.")
+        up = st.file_uploader(
+            "rules.json 업로드",
+            type=["json"],
+            key="rules_json_uploader_learn"
+        )
+        if up is not None:
+            with open(RULES_JSON_PATH, "wb") as f:
+                f.write(up.read())
+            st.cache_data.clear()
+            st.cache_resource.clear()
+            st.success("규정 데이터가 새로 적용되었어요. 잠시 후 자동으로 반영됩니다.")
+            st.rerun()
+    # ⬆⬆⬆ 반드시 'with' 안쪽으로 4칸 들여쓰기 ⬆⬆⬆
 
 
     # 어휘 플래시카드
@@ -944,33 +935,3 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
