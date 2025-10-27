@@ -401,139 +401,115 @@ def build_all_quiz_items(total: int = 10) -> list[dict]:
     random.shuffle(items)
     return items[:total]
 
-import streamlit as st
-
-st.set_page_config(page_title="KBS 한국어능력시험 쌤", layout="wide")
-
-# ────────────────────────────────
-# 1️⃣ 시험 소개 섹션
-# ────────────────────────────────
-st.title("📘 KBS 한국어능력시험 소개")
-
-with st.expander("1️⃣ 왜 필요한가요?", expanded=True):
-    st.markdown("""
-    **입학 / 취업 / 승진에 유리합니다.**
-    - 특목고 진학 및 대학 입학
-    - KBS·EBS·경향신문 등 언론사 취업
-    - 우리은행·GS홈쇼핑 등 민간기업 취업
-    - 건강보험공단·한국전력 등 공공기관 취업
-    - 경찰청 등 승진 시 ‘결정적 가산점’ 획득 가능
-    """)
-
-with st.expander("2️⃣ 응시 안내"):
-    st.markdown("""
-    - 대한민국 국적자 누구나 응시 가능  
-    - 외국인은 외국인등록증/국내거소등록증/영주증 중 택1 소지  
-    - 전국 15개 권역(서울, 부산, 대구, 광주, 제주 등)에서 시행  
-    - [klt.or.kr](https://www.klt.or.kr) 에서 온라인 접수 (응시료 33,000원, 자격증 발급 5,000원)
-    """)
-
-with st.expander("3️⃣ 시험 구성 및 영역"):
-    st.markdown("""
-    **객관식 5지 선다형 · 총 100문항**
-
-    | 영역 | 문항 수 | 시간 |
-    |:--|:--:|:--:|
-    | 듣기·말하기 | 15 | 10:00~10:25 (25분) |
-    | 어휘 | 15 |  |
-    | 어법 | 15 |  |
-    | 쓰기 | 5 | 10:25~12:00 (95분) |
-    | 창안 | 10 |  |
-    | 읽기 | 30 |  |
-    | 국어문화 | 10 |  |
-    """)
-
-with st.expander("4️⃣ 영역별 출제 경향"):
-    st.subheader("듣기·말하기")
-    st.markdown("- 그림·장면·라디오 듣고 내용 파악\n- 고전·우화·시 청취 후 추론\n- 대화·발표 듣고 말하기 방식 추론")
-    st.subheader("어휘")
-    st.markdown("- 고유어·한자어 뜻/표기\n- 어휘 관계 파악, 속담·관용구\n- 외래어·한자어의 우리말 다루기")
-    st.subheader("어법")
-    st.markdown("- 맞춤법/표준어/발음/표기법 구분\n- 문장의 호응/잘못된 표현 파악")
-    st.subheader("쓰기")
-    st.markdown("- 계획·개요 수정, 자료 활용, 글 고쳐쓰기")
-
-st.divider()
-
-# ────────────────────────────────
-# 2️⃣ 질문하기 섹션
-# ────────────────────────────────
-st.header("🧐 저에게 질문을 해주세요!")
-
-st.markdown(
-    "<p style='font-size:14px; color:#555; margin-top:-10px; margin-bottom:-8px;'>"
-    "(예: '교각살우'의 뜻이 궁금해요,<br>"
-    "'늑막염'의 표준 발음을 알려주세요,<br>"
-    "또는 업로드한 자료에 나온 단어를 물어보세요!)"
-    "</p>",
-    unsafe_allow_html=True
+# ─────────────────────────────────────────────────────────────
+# 탭 UI: 시험 소개 · 질문하기 | 퀴즈 | 학습하기 | 오답노트
+# ─────────────────────────────────────────────────────────────
+tab_intro_ask, tab_quiz, tab_learn, tab_wrong = st.tabs(
+    ["🥰 시험 소개 · 🧐 질문하기", "🤗 퀴즈 풀기", "📚 학습하기", "📘 오답노트"]
 )
-user_q = st.text_input("질문 입력", placeholder="여기에 질문을 입력하세요 😊")
 
-if user_q:
-    st.info(f"‘{user_q}’에 대한 답변을 불러오는 중입니다…")
-    # 예시 출력 (실제 코드에서는 answer_rule, answer_vocab 등 함수로 연결)
-    st.success("👉 예시 답변: ‘교각살우’는 ‘작은 일을 바로잡으려다 큰일을 그르침’을 뜻합니다.")
+# ───────── 1) 시험 소개 · 질문하기 탭 ─────────
+with tab_intro_ask:
+    # ── (A) 시험 소개 섹션 ──
+    st.markdown("<h2>📘 KBS 한국어능력시험 소개</h2>", unsafe_allow_html=True)
 
-st.markdown("<br><p style='color:gray; text-align:center;'>파이팅! 쌤은 여러분의 시험을 응원합니다 🥰</p>", unsafe_allow_html=True)
-st.divider()
+    with st.expander("1️⃣ 왜 필요한가요?", expanded=True):
+        st.markdown("""
+        **입학 / 취업 / 승진에 유리합니다.**
+        - 특목고 진학 및 대학 입학  
+        - KBS·EBS·경향신문 등 언론사 취업  
+        - 우리은행·GS홈쇼핑 등 민간기업 취업  
+        - 건강보험공단·한국전력 등 공공기관 취업  
+        - 경찰청 등 승진에서 ‘결정적 가산점’ 확보  
+        """)
 
-# ────────────────────────────────
-# 3️⃣ 퀴즈 풀기 섹션
-# ────────────────────────────────
-st.header("🤗 퀴즈 풀기")
-st.write("랜덤 10문항으로 구성된 KBS 한국어능력 퀴즈입니다.")
+    with st.expander("2️⃣ 응시 안내"):
+        st.markdown("""
+        - 대한민국 국적자 누구나 응시 가능  
+        - 외국인은 외국인등록증/국내거소등록증/영주증 중 택1 필요  
+        - 전국 15개 권역(서울·부산·대구·광주·제주 등)에서 시행  
+        - KBS 한국어능력시험 홈페이지에서 **온라인 접수**  
+        - 응시료 **33,000원** (자격증 발급 수수료 **5,000원** 별도)
+        """)
 
-if st.button("🔄 새 퀴즈 출제"):
-    st.info("퀴즈가 새로 출제되었습니다! 아래에서 풀어보세요~")
+    with st.expander("3️⃣ 시험 구성 및 영역"):
+        st.markdown("""
+        **객관식 5지 선다형 · 총 100문항**
 
-st.markdown("**Q1. ‘교각살우’의 의미로 옳은 것은?**")
-user_ans = st.radio("보기", ["작은 일로 큰일을 망침", "작은 일에 만족함", "소를 칭찬하는 말"], index=None)
-if user_ans:
-    st.success("정답입니다!" if user_ans == "작은 일로 큰일을 망침" else "틀렸어요! 다시 생각해보세요.")
+        | 영역 | 문항 수 | 시간 |
+        |:--|:--:|:--:|
+        | 듣기·말하기 | 15 | 10:00~10:25 (25분) |
+        | 어휘 | 15 |  |
+        | 어법 | 15 |  |
+        | 쓰기 | 5 | 10:25~12:00 (95분) |
+        | 창안 | 10 |  |
+        | 읽기 | 30 |  |
+        | 국어 문화 | 10 |  |
+        """)
 
-st.divider()
+    with st.expander("4️⃣ 영역별 출제 경향"):
+        st.subheader("듣기·말하기")
+        st.markdown("- 그림·장면·라디오 듣고 내용 파악하기\n- 고전/우화/시 청취 후 추론\n- 대화·발표 듣고 말하기 방식 추론")
+        st.subheader("어휘")
+        st.markdown("- 고유어·한자어 뜻/표기\n- 어휘 관계 파악, 속담·관용구\n- 외래어·한자어 우리말로 다루기")
+        st.subheader("어법")
+        st.markdown("- 맞춤법/표준어/발음/표기법 구분\n- 문장 호응·잘못된 표현 파악")
+        st.subheader("쓰기")
+        st.markdown("- 계획·개요 수정, 자료 활용, 글 고쳐쓰기")
 
-# ────────────────────────────────
-# 4️⃣ 학습하기 섹션
-# ────────────────────────────────
-st.header("📚 학습하기")
-st.write("규정 학습, 어휘 플래시카드, 다의어 학습으로 구성되어 있습니다.")
+    st.info("💡 다음 단계로 **질문하기 → 퀴즈 풀기 → 학습하기 → 오답노트** 순서로 진행해 보세요!")
 
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.subheader("✏️ 규정 학습")
-    st.write("맞춤법·표준발음법·외래어 표기법 등 학습")
-    st.button("규정 학습 시작")
+    st.divider()
 
-with col2:
-    st.subheader("🗂 어휘 플래시카드")
-    st.write("고유어, 관용구, 속담 등을 플래시카드로 암기")
-    st.button("플래시카드 보기")
+    # ── (B) 질문하기 섹션 ──
+    st.markdown(
+        "<p style='font-size:18px; font-weight:600;'>🐲 저에게 질문을 해주세용 🌟!</p>"
+        "<p style='font-size:14px; color:#555; margin-top:-10px; margin-bottom:-8px;'>"
+        "(e.g. '교각살우'의 뜻이 궁금해요,<br>"
+        "'늑막염'의 표준 발음을 알려주세요,<br>"
+        "자료에서 ~ 는 어디에 나오나요?)"
+        "</p>",
+        unsafe_allow_html=True
+    )
 
-with col3:
-    st.subheader("🔁 다의어 학습")
-    st.write("다의어의 문맥별 의미를 비교 학습")
-    st.button("다의어 연습 시작")
+    # 입력창 (예시 문구와 딱 붙게)
+    user_q = st.text_input("", placeholder="여기에 질문을 입력하세요 😊")
 
-st.divider()
+    # 응원 문구 (2줄 공백 후)
+    st.markdown(
+        "<br><br>"
+        "<p style='color:gray; font-size:20px; font-weight:600; text-align:center;'>"
+        "파이팅!!! 쌤은 여러분의 시험을 응원합니다~! 🥰"
+        "</p>",
+        unsafe_allow_html=True
+    )
 
-# ────────────────────────────────
-# 5️⃣ 오답노트 섹션
-# ────────────────────────────────
-st.header("📘 오답노트")
-st.write("틀린 문제를 자동으로 저장하여 복습할 수 있습니다.")
+    if user_q:
+        kind = intent(user_q)
+        with st.spinner("답변 생성 중…"):
+            try:
+                if kind == "vocab":
+                    ans = answer_vocab(user_q)
+                elif kind == "rule":
+                    ans = answer_rule(user_q)
+                elif kind == "poly":
+                    ans = answer_poly(user_q)
+                else:
+                    ans = run_rag(user_q)
 
-wrong_sample = [
-    {"문항": "‘교각살우’의 뜻으로 옳은 것은?", "선택": "작은 일에 만족함", "정답": "작은 일로 큰일을 망침"},
-    {"문항": "‘가납사니’의 의미는?", "선택": "부지런한 사람", "정답": "말을 잘하고 재치 있는 사람"}
-]
+                st.write(ans)
 
-for i, w in enumerate(wrong_sample, start=1):
-    st.markdown(f"**❌ Q{i}. {w['문항']}**")
-    st.write(f"- 내가 선택한 답: {w['선택']}")
-    st.write(f"- 정답: {w['정답']}")
-    st.write("---")
+                if kind == "rag" and retriever is not None:
+                    with st.expander("🔎 근거 보기(업로드 자료에서 추출)"):
+                        docs = retriever.invoke(user_q)
+                        for i, d in enumerate(docs, 1):
+                            st.markdown(f"**근거 {i}**")
+                            st.code((d.page_content or "")[:800])
+            except Exception as e:
+                st.error(f"오류가 발생했습니다: {e}")
+
+# 나머지 탭(tab_quiz, tab_learn, tab_wrong)은
+# 기존에 쓰던 코드 블록을 그대로 이어서 사용하세요.
 
 # ─────────────────────────────────────────────────────────────
 # 퀴즈 탭 (확장 버전: 제출 → 결과 → 새 퀴즈 버튼 순서)
@@ -832,6 +808,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
