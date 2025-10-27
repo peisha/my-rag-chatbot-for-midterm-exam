@@ -457,7 +457,7 @@ with tab_intro_ask:
         st.subheader("쓰기")
         st.markdown("- 계획·개요 수정, 자료 활용, 글 고쳐쓰기")
 
-    st.info("💡 다음 단계로 **질문하기 → 퀴즈 풀기 → 학습하기 → 오답노트** 순서로 진행해 보세요!")
+    st.info("💡 **퀴즈 풀기 → 학습하기 → 오답노트** 순서로 학습을 진행해 보세요!")
 
     st.divider()
 
@@ -808,6 +808,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
