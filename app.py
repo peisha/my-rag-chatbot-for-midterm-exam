@@ -747,7 +747,7 @@ with tab_learn:
                 st.toast("다의어 1개 학습 완료!", icon="✅")
 
     # 미니 테스트 (방금 학습한 맥락으로 5문항)
-    with st.expander("🧪 미니 테스트(5문항)"):
+    with st.expander("🧪 미니 테스트(방금 학습한 맥락으로 5문항!)"):
         mini_items = build_all_quiz_items(total=5)  # 기존 빌더 재사용
         mini_answers = {}
         for i, q in enumerate(mini_items):
@@ -840,6 +840,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
