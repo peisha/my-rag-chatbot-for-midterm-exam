@@ -40,61 +40,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ───────── 데이터 로더 (어휘/규정/다의어)
-@st.cache_data
-def load_lexicon_df():
-    """
-    통합 어휘 로더: 고유어/관용구/속담/사자성어/순화어
-    각 CSV 스키마: [유형, 어휘, 뜻풀이] (예문, 비고는 선택)
-    """
-    files = [
-        "data/고유어.csv", "data/관용구.csv", "data/속담.csv",
-        "data/사자성어.csv", "data/순화어.csv",
-    ]
-    cols_base = ["유형", "어휘", "뜻풀이"]
-    dfs = []
-    for p in files:
-        if os.path.exists(p):
-            df = pd.read_csv(p)
-            for c in cols_base:
-                if c not in df.columns: df[c] = ""
-            for c in ["예문", "비고"]:
-                if c not in df.columns: df[c] = ""
-            dfs.append(df[cols_base + ["예문", "비고"]])
-    if not dfs:
-        return pd.DataFrame(columns=cols_base + ["예문", "비고"])
-    out = pd.concat(dfs, ignore_index=True)
-    for c in out.columns:
-        out[c] = out[c].fillna("").astype(str)
-    return out
-
-@st.cache_data
-def load_rules_list():
-    # TODO: 규정 데이터 로딩 함수 구현 예정
-    return []
-
-@st.cache_data
-def load_poly_df():
-    """data/polysemy.csv (표제어,의미번호,뜻,예문) → 항상 DataFrame 반환"""
-    path = "data/polysemy.csv"
-    cols = ["표제어","의미번호","뜻","예문"]
-    if not os.path.exists(path):
-        return pd.DataFrame(columns=cols)
-    try:
-        df = pd.read_csv(path)
-    except Exception:
-        return pd.DataFrame(columns=cols)
-    # 누락 컬럼 보정
-    for c in cols:
-        if c not in df.columns:
-            df[c] = ""
-    return df[cols].fillna("").astype(str)
-
-# CSV 파일 로드
-VOCAB = load_lexicon_df()
-RULES = load_rules_list() or []
-POLY = load_poly_df()
-
 # ==========================
 # 1) 규정 JSON 로드 & 문서화
 # ==========================
@@ -938,6 +883,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
