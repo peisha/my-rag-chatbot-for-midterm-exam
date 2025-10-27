@@ -98,21 +98,28 @@ POLY = load_poly_df()
 # ==========================
 # 1) 규정 JSON 로드 & 문서화
 # ==========================
-import json, os, io
-from typing import List
+# 상단 import 근처
+import json, os
 from langchain_core.documents import Document
+from typing import List
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings  # 또는
-# from langchain_openai import OpenAIEmbeddings  # OpenAI 임베딩을 쓸 때만
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
-RULES_JSON_PATH = "rules.json"  # 업로드 파일명 동일하게 사용
+RULES_JSON_PATH = "rules.json"  # 업로드로 덮어쓸 파일명
 
 @st.cache_data(show_spinner=False)
-def load_rule_docs(path: str = RULES_JSON_PATH):
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    docs = []
-    for i, row in enumerate(data, 1):
+def load_rule_docs(path: str = RULES_JSON_PATH) -> list[Document]:
+    """rules.json → LangChain Document 목록. 파일 없거나 파싱 실패 시 []"""
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        return []
+
+    docs: list[Document] = []
+    for row in data:
         j = row.get
         장, 절, 항, 제목 = j("장",""), j("절",""), j("항",""), j("제목","")
         설명 = j("설명","")
@@ -120,35 +127,25 @@ def load_rule_docs(path: str = RULES_JSON_PATH):
         bad  = ", ".join(j("예시_틀림", []))
         excp = ", ".join(j("예시_예외",  []))
         body = [설명]
-        if ok: body.append(f"[예시_옳음] {ok}")
+        if ok:  body.append(f"[예시_옳음] {ok}")
         if bad: body.append(f"[예시_틀림] {bad}")
         if excp: body.append(f"[예시_예외] {excp}")
         text = f"{장} · {절} · {항}\n{제목}\n\n" + "\n".join(body)
         docs.append(Document(page_content=text, metadata={"장": 장, "절": 절, "항": 항, "제목": 제목}))
     return docs
 
-@st.cache_resource(show_spinner=False)
-def build_rule_retriever(docs):
-    embed = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vs = FAISS.from_documents(docs, embed)
-    return vs.as_retriever(search_kwargs={"k": 4})
-
-rule_docs = load_rule_docs()
-retriever_rules = build_rule_retriever(rule_docs)
-
 # =========================
 # 2) 벡터 스토어 구축/로드
 # =========================
 @st.cache_resource(show_spinner=False)
 def build_rule_retriever(docs: List[Document]):
-    # 임베딩 백엔드는 원하는 걸로 교체 가능
     embed = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vs = FAISS.from_documents(docs, embed)
     return vs.as_retriever(search_kwargs={"k": 4})
 
-# 부팅 시 규정 색인 준비
+# 부팅 시 규정 색인 준비 (파일 없으면 None)
 rule_docs = load_rule_docs(RULES_JSON_PATH)
-rule_retriever = build_rule_retriever(rule_docs)
+retriever_rules = build_rule_retriever(rule_docs) if rule_docs else None
 
 # =========================
 # 3) 규정 Q&A 함수
@@ -178,13 +175,11 @@ def answer_rule(user_q: str) -> str:
 # =========================
 # 4) (선택) 앱에서 파일 업로드로 교체 가능
 # =========================
-with st.expander("📤 규정 JSON 업로드(선택)"):
+with st.expander("📤 규정 JSON 업로드 (선택)"):
     up = st.file_uploader("rules.json 업로드", type=["json"])
     if up is not None:
-        # 업로드된 내용을 앱 로컬에 덮어쓰기
         with open(RULES_JSON_PATH, "wb") as f:
             f.write(up.read())
-        # 캐시 리프레시
         st.cache_data.clear()
         st.cache_resource.clear()
         st.success("규정 데이터가 갱신되었어요. 잠시 후 자동으로 반영됩니다.")
@@ -800,9 +795,9 @@ with tab_learn:
     G = S["today_goal"]; P = S["progress"]
 
     ...
-    with st.expander("📏 규정 학습", expanded=True):
+    with st.expander("🧋 규정 학습 🥂", expanded=True):
         ...
-    with st.expander("📤 규정 JSON 업로드 (선택)"):
+    with st.expander("🍈 규정 JSON 업로드 (선택사항입니다) 🌽"):
         up = st.file_uploader(
             "rules.json 업로드",
             type=["json"],
@@ -817,11 +812,11 @@ with tab_learn:
             st.rerun()
             
     # 어휘 플래시카드
-    with st.expander("🃏 어휘 플래시카드", expanded=True):
+    with st.expander("🍇 어휘 플래시카드 🍓", expanded=True):
         flash_lex(VOCAB)
 
     # 다의어 학습
-    with st.expander("🔀 다의어 학습"):
+    with st.expander("🍊 다의어 학습 🍒"):
         if POLY.empty:
             st.info("polysemy.csv가 비어 있습니다.")
         else:
@@ -840,7 +835,7 @@ with tab_learn:
                 st.toast("다의어 1개 학습 완료!", icon="✅")
 
     # 미니 테스트 (방금 학습한 맥락으로 5문항)
-    with st.expander("🧪 미니 테스트 (방금 학습한 맥락으로 5문항!)"):
+    with st.expander("🍋 미니 테스트 (방금 학습한 맥락으로 5문항!) 🫐"):
         mini_items = build_all_quiz_items(total=5)  # 기존 빌더 재사용
         mini_answers = {}
         for i, q in enumerate(mini_items):
@@ -933,6 +928,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
