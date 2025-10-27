@@ -95,6 +95,100 @@ VOCAB = load_lexicon_df()
 RULES = load_rules_list() or []
 POLY  = load_poly_df()
 
+# =========================
+# 1) 규정 JSON 로드 & 문서화
+# =========================
+import json, os, io
+from typing import List
+from langchain.schema import Document
+from langchain_community.vectorstores import FAISS
+from langchain.embeddings import HuggingFaceEmbeddings  # 또는 OpenAIEmbeddings
+
+RULES_JSON_PATH = "rules.json"  # ← 업로드 파일명을 이 이름으로 저장해 사용
+
+@st.cache_data(show_spinner=False)
+def load_rule_docs(path: str = RULES_JSON_PATH) -> List[Document]:
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    docs = []
+    for i, row in enumerate(data, 1):
+        j = row.get
+        장, 절, 항, 제목 = j("장",""), j("절",""), j("항",""), j("제목","")
+        설명 = j("설명","")
+        # 예시 필드는 파일마다 있을 수도/없을 수도 있으니 안전하게 get
+        ok   = ", ".join(j("예시_옳음",  []))
+        bad  = ", ".join(j("예시_틀림", []))
+        excp = ", ".join(j("예시_예외",  []))
+
+        body_lines = [설명]
+        if ok:   body_lines.append(f"[예시_옳음] {ok}")
+        if bad:  body_lines.append(f"[예시_틀림] {bad}")
+        if excp: body_lines.append(f"[예시_예외] {excp}")
+
+        text = f"{장} · {절} · {항}\n{제목}\n\n" + "\n".join(body_lines)
+
+        docs.append(
+            Document(
+                page_content=text,
+                metadata={"장": 장, "절": 절, "항": 항, "제목": 제목, "idx": i}
+            )
+        )
+    return docs
+
+# =========================
+# 2) 벡터 스토어 구축/로드
+# =========================
+@st.cache_resource(show_spinner=False)
+def build_rule_retriever(docs: List[Document]):
+    # 임베딩 백엔드는 원하는 걸로 교체 가능
+    embed = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    vs = FAISS.from_documents(docs, embed)
+    return vs.as_retriever(search_kwargs={"k": 4})
+
+# 부팅 시 규정 색인 준비
+rule_docs = load_rule_docs(RULES_JSON_PATH)
+rule_retriever = build_rule_retriever(rule_docs)
+
+# =========================
+# 3) 규정 Q&A 함수
+# =========================
+def answer_rule(user_q: str) -> str:
+    """규정 전용 질의 응답: 최상위 근거 1~2개를 요약해 보여줌"""
+    hits = rule_retriever.invoke(user_q)
+    if not hits:
+        return "규정에서 관련 내용을 찾지 못했어요. 질문을 조금만 바꿔서 다시 시도해 주세요!"
+
+    # 최상위 결과로 간단한 답변 + 메타(장/절/항/제목)와 근거 일부를 보여줌
+    top = hits[0]
+    meta = top.metadata
+    header = f"**{meta.get('장','')} · {meta.get('절','')} · {meta.get('항','')}** — {meta.get('제목','')}"
+    snippet = top.page_content[:800]  # 너무 길면 800자까지만
+    out = f"{header}\n\n{snippet}"
+
+    # 추가 근거(선택)
+    if len(hits) > 1:
+        out += "\n\n---\n**추가 근거**\n"
+        for h in hits[1:3]:
+            m = h.metadata
+            out += f"- {m.get('장','')} {m.get('절','')} {m.get('항','')} — {m.get('제목','')}\n"
+
+    return out
+
+# =========================
+# 4) (선택) 앱에서 파일 업로드로 교체 가능
+# =========================
+with st.expander("📤 규정 JSON 업로드(선택)"):
+    up = st.file_uploader("rules.json 업로드", type=["json"])
+    if up is not None:
+        # 업로드된 내용을 앱 로컬에 덮어쓰기
+        with open(RULES_JSON_PATH, "wb") as f:
+            f.write(up.read())
+        # 캐시 리프레시
+        st.cache_data.clear()
+        st.cache_resource.clear()
+        st.success("규정 데이터가 갱신되었어요. 잠시 후 자동으로 반영됩니다.")
+
 # ─────────────────────────────────────────────────────────────
 # 파일 업로드 → 텍스트 추출 → 벡터DB 구성 (업로드시만)
 # ─────────────────────────────────────────────────────────────
@@ -199,27 +293,28 @@ def answer_vocab(q: str) -> str:
     return "사전에 직접 일치하는 어휘가 없어요.\n\n" + back
 
 
-def answer_rule(q: str) -> str:
-    """rules.json에서 항목 키워드 부분일치 검색 (여러 개면 첫 항목)"""
-    if not RULES:
-        return "규정 데이터(rules.json)가 아직 없습니다. 먼저 data/rules.json을 채워 주세요."
-    candidates = []
-    for item in RULES:
-        text_blob = f"{item.get('항목','')} {item.get('설명','')}"
-        if any(tok in text_blob for tok in q.split()):
-            candidates.append(item)
-    target = candidates[0] if candidates else (RULES[0] if RULES else None)
-    if not target:
-        return "해당 규정을 찾지 못했어요. 질문을 조금만 다르게 써볼까요?"
+def answer_rule(q: str):
+    """규정 전용 RAG: rules.json 기반으로 검색"""
+    if retriever_rules is None:
+        return "규정 데이터가 아직 로드되지 않았어요. rules.json을 업로드해 주세요!"
 
-    lines = [
-        f"〔{target.get('규정명','규정')}〕 {target.get('항목','')}",
-        target.get('설명',''),
-    ]
-    ex = target.get('예시','')
-    if isinstance(ex, str) and ex.strip():
-        lines.append(f"예시: {ex}")
-    return "\n".join(lines)
+    hits = retriever_rules.invoke(q)
+    if not hits:
+        return "관련 규정을 찾지 못했어요. 질문을 조금 다르게 써 볼까요?"
+
+    top = hits[0]
+    meta = top.metadata
+    header = f"**{meta.get('장','')} · {meta.get('절','')} · {meta.get('항','')} — {meta.get('제목','')}**"
+    snippet = top.page_content[:800]
+    out = f"{header}\n\n{snippet}"
+
+    if len(hits) > 1:
+        out += "\n\n---\n**추가 근거**\n"
+        for h in hits[1:3]:
+            m = h.metadata
+            out += f"- {m.get('장','')} {m.get('절','')} {m.get('항','')} — {m.get('제목','')}\n"
+    return out
+
 
 def answer_poly(q: str) -> str:
     if POLY.empty:
@@ -723,6 +818,16 @@ with tab_learn:
             st.session_state.study["progress"]["rule"] += 1
             st.toast("규정 1개 학습 완료!", icon="✅")
 
+    with st.expander("📤 규정 JSON 업로드 (선택)"):
+    up = st.file_uploader("rules.json 업로드", type=["json"])
+    if up is not None:
+        with open("rules.json", "wb") as f:
+            f.write(up.read())
+        st.cache_data.clear()
+        st.cache_resource.clear()
+        st.success("규정 데이터가 새로 적용되었어요. 잠시 후 자동으로 반영됩니다.")
+
+
     # 어휘 플래시카드
     with st.expander("🃏 어휘 플래시카드", expanded=True):
         flash_lex(VOCAB)
@@ -840,6 +945,7 @@ with st.sidebar:
     st.markdown("- 다의어: `들다 다의어`, `달다 여러 뜻`, `치르다 뜻들`")
     st.markdown("- 퀴즈: 탭에서 **새 퀴즈 출제 → 제출**")
     st.markdown("- 업로드 RAG: 파일 올리고 자유 질의")
+
 
 
 
